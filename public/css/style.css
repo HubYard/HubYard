@@ -618,7 +618,7 @@ width: 100%;
 	cursor:pointer;
      color: #AAA;
     line-height: 60px;
-    padding:0px 40px 0px 0px;
+    margin:0px 40px 0px 0px;
 }
 
 .beta-push{
