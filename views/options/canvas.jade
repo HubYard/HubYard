@@ -1,0 +1,11 @@
+.overlay.overlay-canvas
+    .overlay-arrow
+    .overlay-item
+        .overlay-header Current Canvas
+        .overlay-content
+            .overlay-block-option
+                .settings-block-input-name Name
+                input.settings-block-input.update_canvas_name(type='name' value= canvases[i].name)
+            .overlay-block-option
+                .button-line.overlay-block-button.save-current-canvas.half-button(data-id= canvases[i].id) Save
+                .button-line.overlay-block-button.delete-current-canvas.half-button(data-id= canvases[i].id) Delete

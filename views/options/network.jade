@@ -1,0 +1,128 @@
+.overlay.overlay-networks
+    .overlay-arrow
+    .overlay-item
+        .overlay-header
+            | !{networks[i].user.name} <a style='font-size:12px; font-weight:normal'>@!{networks[i].user.username}</a>
+        .overlay-content
+            .overlay-block-option
+                .overlay-block-item-left Type
+                .overlay-block-item-right= networks[i].service
+                .clear
+            -if(networks[i].service === 'twitter'){
+                .create-new
+                    .overlay-block-option(style='text-align:center; font-weight:bold; color:#71818B') Add New Stream
+                    .overlay-block-option
+                        .overlay-block-item-left.dark Home Feed
+                        .overlay-block-item-right.new-stream.icon-plus(data-network_id= networks[i].id data-user= networks[i].user.username data-service='twitter' data-type='home_feed')
+                        .clear
+                    .overlay-block-option
+                        .overlay-block-item-left.dark User Feed
+                        .overlay-block-item-right.new-stream.icon-plus(data-network_id= networks[i].id data-user=networks[i].user.username data-service='twitter' data-type='user_feed')
+                        .clear
+                    .overlay-block-option
+                        .overlay-block-item-left.dark Mentions
+                        .overlay-block-item-right.new-stream.icon-plus(data-network_id= networks[i].id data-user=networks[i].user.username data-service='twitter' data-type='mentions_feed')
+                        .clear
+                    .overlay-block-option
+                        .overlay-block-item-left.dark Search Feed
+                        .overlay-block-item-right.new-stream.icon-plus(data-network_id= networks[i].id data-user=networks[i].user.username data-service='twitter' data-type='search_feed')
+                        .clear
+                        input.overlay-block-query(placeholder='Enter the term you want to search')
+                    .overlay-block-option
+                        .overlay-block-item-left.dark User Feed
+                        .overlay-block-item-right.new-stream.icon-plus(data-network_id= networks[i].id data-user=networks[i].user.username data-service='twitter' data-type='user_search_feed')
+                        .clear
+                        input.overlay-block-query(placeholder='Enter a twitter username! no "@"')
+                .overlay-block-option(style='margin-bottom:0px')
+                    a(href='/auth/twitter')
+                        .button-line.overlay-block-button.half-button(style='margin-right:15px') Refresh
+                    .button-line.overlay-block-button.delete-current-network.half-button( data-id= networks[i].id) Delete
+            -} else if(networks[i].service === 'instagram'){
+                .create-new
+                    .overlay-block-option(style='text-align:center; font-weight:bold; color:#71818B') Add New Stream
+                    .overlay-block-option
+                        .overlay-block-item-left.dark Home Feed
+                        .overlay-block-item-right.new-stream.icon-plus(data-network_id= networks[i].id data-user= networks[i].user.username data-service='instagram' data-type='home_feed')
+                        .clear
+                    .overlay-block-option
+                        .overlay-block-item-left.dark User Feed
+                        .overlay-block-item-right.new-stream.icon-plus(data-network_id= networks[i].id data-user=networks[i].user.username data-service='instagram' data-type='user_feed')
+                        .clear
+                    .overlay-block-option
+                        .overlay-block-item-left.dark Search Feed
+                        .overlay-block-item-right.new-stream.icon-plus(data-network_id= networks[i].id data-user=networks[i].user.username data-service='instagram' data-type='search_feed')
+                        .clear
+                        input.overlay-block-query(placeholder='Enter the term you want to search')
+                    .overlay-block-option
+                        .overlay-block-item-left.dark User Feed
+                        .overlay-block-item-right.new-stream.icon-plus(data-network_id= networks[i].id data-user=networks[i].user.username data-service='instagram' data-type='user_search_feed')
+                        .clear
+                        input.overlay-block-query(placeholder='Enter a insta username! no "@"')
+                .overlay-block-option(style='margin-bottom:0px')
+                    a(href='/auth/instagram')
+                        .button-line.overlay-block-button.half-button(style='margin-right:15px') Refresh
+                    .button-line.overlay-block-button.delete-current-network.half-button( data-id= networks[i].id) Delete
+            -} else if(networks[i].service === 'tumblr'){
+                .create-new
+                    .overlay-block-option(style='text-align:center; font-weight:bold; color:#71818B') Add New Stream
+                    .overlay-block-option
+                        .overlay-block-item-left.dark Home Feed
+                        .overlay-block-item-right.new-stream.icon-plus(data-network_id= networks[i].id data-user= networks[i].user.username data-service='tumblr' data-type='home_feed')
+                        .clear
+                    .overlay-block-option
+                        .overlay-block-item-left.dark User Feed
+                        .overlay-block-item-right.new-stream.icon-plus(data-network_id= networks[i].id data-user=networks[i].user.username data-service='tumblr' data-type='user_feed')
+                        .clear
+                    .overlay-block-option
+                        .overlay-block-item-left.dark Search Feed
+                        .overlay-block-item-right.new-stream.icon-plus(data-network_id= networks[i].id data-user=networks[i].user.username data-service='tumblr' data-type='search_feed')
+                        input.overlay-block-query(placeholder='Enter the term you want to search')
+                        .clear
+                    .overlay-block-option
+                        .overlay-block-item-left.dark User Feed
+                        .overlay-block-item-right.new-stream.icon-plus(data-network_id= networks[i].id data-user=networks[i].user.username data-service='tumblr' data-type='user_search_feed')
+                        .clear
+                        input.overlay-block-query(placeholder='Enter a username (no .tumblr.com)')
+                .overlay-block-option(style='margin-bottom:0px')
+                    a(href='/auth/instagram')
+                        .button-line.overlay-block-button.half-button(style='margin-right:15px') Refresh
+                    .button-line.overlay-block-button.delete-current-network.half-button( data-id= networks[i].id) Delete
+            -}else if(networks[i].service === 'product hunt'){
+                .create-new
+                    .overlay-block-option(style='text-align:center; font-weight:bold; color:#71818B') Add New Stream
+                    .overlay-block-option
+                        .overlay-block-item-left.dark Current Hunts
+                        .overlay-block-item-right.new-stream.icon-plus(data-network_id= networks[i].id data-user= networks[i].user.username data-service='product hunt' data-type='hunt_feed')
+                        .clear
+                .overlay-block-option(style='margin-bottom:0px')
+                    a(href='/auth/producthunt')
+                        .button-line.overlay-block-button.half-button(style='margin-right:15px') Refresh
+                    .button-line.overlay-block-button.delete-current-network.half-button( data-id= networks[i].id) Delete
+            -} else if(networks[i].service === 'dribbble'){
+                .create-new
+                    .overlay-block-option(style='text-align:center; font-weight:bold; color:#71818B') Add New Stream
+                    .overlay-block-option
+                        .overlay-block-item-left.dark Recent Shots
+                        .overlay-block-item-right.new-stream.icon-plus(data-network_id= networks[i].id data-user= networks[i].user.username data-service='dribbble' data-type='all_shots')
+                        .clear
+                .overlay-block-option(style='margin-bottom:0px')
+                    a(href='/auth/dribbble')
+                        .button-line.overlay-block-button.half-button(style='margin-right:15px') Refresh
+                    .button-line.overlay-block-button.delete-current-network.half-button( data-id= networks[i].id) Delete
+            -}else if(networks[i].service === 'facebook page'){
+                .create-new
+                    .overlay-block-option(style='text-align:center; font-weight:bold; color:#71818B') Add New Stream
+                    .overlay-block-option
+                        .overlay-block-item-left.dark Page Posts
+                        .overlay-block-item-right.new-stream.icon-plus(data-network_id= networks[i].id data-user= networks[i].user.username data-service='facebook page' data-type='page_posts')
+                        .clear
+                    .overlay-block-option
+                        .overlay-block-item-left.dark Page Mentions
+                        .overlay-block-item-right.new-stream.icon-plus(data-network_id= networks[i].id data-user= networks[i].user.username data-service='facebook page' data-type='page_mentions')
+                        .clear
+                .overlay-block-option(style='margin-bottom:0px')
+                    a(href='/auth/facebook')
+                        .button-line.overlay-block-button.half-button(style='margin-right:15px') Refresh
+                    .button-line.overlay-block-button.delete-current-network.half-button( data-id= networks[i].id) Delete
+            -}
+                 

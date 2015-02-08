@@ -1,0 +1,18 @@
+doctype html
+html
+    head
+        title HubYard 
+        meta(charset="utf-8")
+        meta(content="yes" name="apple-mobile-web-app-capable" )
+        meta(content="minimum-scale=1.0, width=device-width, maximum-scale=1, user-scalable=no" name="viewport" )
+        link(rel='stylesheet', href='/css/style.css')
+        script(src='https://js.stripe.com/v2/')
+        script(src='/js/jquery.min.js')
+        script(src='/js/controller.js')
+    body(style='background:#ecf2f6; overflow:hidden;')
+        -if(upgrade){
+            .upgrade-alert
+                | Sorry, you've exceeded the limits on your account. <a class='upgrade-user'>Click here to upgrade!</a>
+                .x x
+        -}
+    block content

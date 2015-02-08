@@ -1,0 +1,266 @@
+extends layout
+
+block content
+    include upgrade
+    .exploded-image-container
+        img.exploded-image
+    sidebar
+        .protecto
+            header
+                .header-logo-container
+                    .home-header-logo
+                    .home-header-text
+                        | HubYard
+                .header-option-buttons
+                    .header-option-button.minimize-width.icon-left-open
+                    .header-option-button.open-setting-options.icon-cog
+            .partition
+                .partition-header.icon-flash  Connected Canvases
+                .partition-data
+                    -for(var i = 0; i < canvases.length; i++){
+                        - var selected = '';
+                        -if(i === parseFloat(udata.options.canvas)){
+                            -selected = 'selected'
+                        -}
+                        .partition-information.switch-canvas(class= selected data-id= canvases[i].id )
+                            .partition-icon.icon-menu
+                            .partition-text= canvases[i].name
+                            .partition-settings.icon-cog
+                            include options/canvas
+                    -}
+                    .partition-information.selected.tutorial_object.tutorial_2
+                            .partition-icon.icon-menu
+                            .partition-text Sample Canvas
+                    .partition-information.add-new-canvas
+                        .partition-icon.icon-plus
+                        .partition-text Add a new Canvas
+            .partition
+                .partition-header.icon-globe  Connected Accounts
+                .partition-data
+                    -for(var i = 0; i < networks.length; i++){
+                        .partition-information.account-item(data-id= networks[i].id )
+                            .partition-image
+                                -if(networks[i].user.picture){
+                                    img(src= networks[i].user.picture)
+                                -}
+                            .partition-text= networks[i].user.name
+                            .partition-settings.icon-cog
+                            include options/network
+                    -}
+                    .partition-information.tutorial_object.tutorial_4
+                            .partition-image
+                            .partition-text !{udata.name}
+                            .partition-settings.icon-cog
+                            .overlay.overlay-networks.tutorial_object.tutorial_3
+                                .overlay-arrow
+                                .overlay-item
+                                    .overlay-header
+                                        | !{udata.name} <a style='font-size:12px; font-weight:normal'>@you</a>
+                                    .overlay-content
+                                        .overlay-block-option
+                                            .overlay-block-item-left Type
+                                            .overlay-block-item-right Social Network
+                                            .clear
+                                            br
+                                            .create-new
+                                                .overlay-block-option(style='text-align:center; font-weight:bold; color:#71818B') Add New Stream
+                                                .overlay-block-option
+                                                    .overlay-block-item-left.dark Home Feed
+                                                    .overlay-block-item-right.icon-plus
+                                                    .clear
+                    .partition-information.add-new-newsorrss
+                        .partition-icon.icon-book
+                        .partition-text Add a News/RSS Stream
+                    .partition-information.add-new-network
+                        .partition-icon.icon-plus
+                        .partition-text Connect to a new Network
+    content    
+        -function findIndexByKeyValue(obj, key, value){
+            -for (var i = 0; i < obj.length; i++) {
+            -    if (obj[i][key] == value) {
+            -        return i;
+            -    }
+            -}
+            -return 0;
+        -}
+        -if(canvases !== undefined && canvases.length !== 0){
+            -for(var i = 0; i < canvases.length; i++){
+                - var selected = '';
+                -if(i === parseFloat(udata.options.canvas)){
+                    - selected = 'selected';
+                -}
+                .canvas(data-id= canvases[i].id class= selected  )
+                    -if(canvases[i].locations){
+                            -for(var j = 0; j < canvases[i].locations.length; j++){
+                                - var x = findIndexByKeyValue(canvases[i].streams, 'id', canvases[i].locations[j])
+                                .stream(class='setup-' + canvases[i].streams[x].appearance data-id= canvases[i].streams[x].id id= canvases[i].streams[x].id data-service= canvases[i].streams[x].service data-network_id= canvases[i].streams[x].network_id data-type= canvases[i].streams[x].type data-query=canvases[i].streams[x].query )
+                                    .stream-header
+                                        .stream-title
+                                            | <a style='font-weight:bold'>@!{canvases[i].streams[x].user}</a> <a class='subdata'>!{canvases[i].streams[x].service} 
+                                            -if(canvases[i].streams[x].query){
+                                                | (!{canvases[i].streams[x].query})</a>
+                                            -} else {
+                                                | !{canvases[i].streams[x].type.replace(/_/g," ")}</a>
+                                            -}
+                                        .side-options
+                                            a.change-view.icon-eye(data-id= canvases[i].streams[x].id data-service= canvases[i].streams[x].service data-type= canvases[i].streams[x].appearance)
+                                            a.reset-stream.icon-ccw(data-id= canvases[i].streams[x].id data-service= canvases[i].streams[x].service)
+                                            a.remove-stream.icon-cancel(data-id= canvases[i].streams[x].id data-service= canvases[i].streams[x].service)
+                                    .stream-content-comment(id='comment_' + canvases[i].streams[x].id)
+                                        .stream-layer
+                                            .stream-content-return.icon-right-open Return
+                                            .stream-content-comment-content-full
+                                                .stream-content-comment-content
+                                                .stream-content-comment-input
+                                                    textarea(placeholder='Respond to this user!')
+                                                .stream-content-comment-footer
+                                                    .stream-comment-characters
+                                                        | <a id='comment_chars'>0</a> Characters
+                                                    .stream-comment-post
+                                                        .button-line.overlay-block-button.post-action(data-type='comment') Post
+                                                    .clear
+                                    .stream-content-user(id='user_' + canvases[i].streams[x].id)
+                                        .stream-layer
+                                            .stream-content-return.icon-right-open Return
+                                            .stream-content-head
+                                                .stream-content-user-picture
+                                                .stream-content-user-name
+                                                .clear
+                                            .stream-content-user-details
+                                            .stream-content-user-stats
+                                            .width-burn
+                                    .stream-content
+                                        .stream-content-layer 
+                            -}
+                        -}
+                    -}
+        -} else {
+            .welcome
+                .welcome-main Hello! 
+                .welcome-text Hey, !{udata.name}, welcome to HubYard! We're simple and open source solution to Social Networking!
+                .welcome-fiddy
+                    .start-tutorial.overlay-block-button.tutoral-next(data-next='1') Start Tutorial
+                    .no-tutorial Forget that, let's build a canvas!
+            include tutorial
+        -}
+    overlays
+        .nowidth
+            .header-option-button.minimize-width.icon-right-open
+        .overlay.overlay-setting-options
+            .overlay-item
+                .overlay-content
+                    .overlay-block-option.account-settings Account Settings
+                    .overlay-block-option.account-settings Billing
+                    a(href='https://github.com/HubYard/HubYard' target='_blank')
+                        .overlay-block-option Source
+                    a(href='http://hubyard.uservoice.com/' target='_blank')
+                        .overlay-block-option Suggest Features or Get Support
+                    a(href='http://twitter.com/hubyard' target='_blank')
+                        .overlay-block-option Tweet Us
+                    a(href='/logout')
+                        .overlay-block-option Log Out
+        .overlay.overlay-new-newsorrss
+            .overlay-item
+                .news-options
+                    .news-option-header News/Opinion
+                    .news-option(data-url='http://qz.com/feed/') Quartz
+                    .news-option(data-url='http://www.vox.com/rss/index.xml') Vox
+                    .news-option-header Tech
+                    .news-option(data-url='http://feeds.feedburner.com/TechCrunch/') TechCrunch
+                    .news-option(data-url='http://feeds.mashable.com/Mashable') Mashable
+                    .news-option(data-url='http://www.theverge.com/rss/index.xml') The Verge
+                    .news-option(data-url='http://feeds2.feedburner.com/TheNextWeb') The Next Web
+                    .news-option-header Hacking
+                    .news-option(data-url='https://news.ycombinator.com/rss') Hacker News
+                    .news-option-header Design
+                    .news-option(data-url='https://news.layervault.com/?format=rss') Designer News
+                    .news-option(data-url='http://feeds.sidebar.io/SidebarFeed') Sidebar
+                    .news-option-header Marketing
+                    .news-option(data-url='http://feeds.feedburner.com/bufferapp') Buffer Blog
+                    .news-option(data-url='http://www.socialmediaexaminer.com/feed/') Social Media Examiner
+                    .news-option-header Startups
+                    .news-option(data-url='http://tech.co/feed') Tech Cocktail
+                    .news-option(data-url='http://feeds.venturebeat.com/VentureBeat') VentureBeat
+                .add-new-rss
+                    .news-option-header Custom RSS
+                    .news-option
+                        input.news-option-rss(type='text' placeholder='Enter a new RSS url')
+                        .button-line.overlay-block-button.add-new-rss-link Add New Stream
+        .overlay.overlay-new-network
+            .overlay-item(style="width: 360px;")
+                .overlay-header Add a new Network
+                .overlay-content
+                    a(href='/auth/twitter')
+                        .network-box
+                            .network-logo.icon-twitter
+                            .network-title Twitter
+                    a(href='/auth/instagram')
+                        .network-box
+                            .network-logo.icon-instagram
+                            .network-title Instagram
+                    a(href='/auth/dribbble')
+                        .network-box
+                            .network-logo.icon-dribbble
+                            .network-title Dribbble
+                    a(href='/auth/tumblr')
+                        .network-box
+                            .network-logo.icon-tumblr
+                            .network-title Tumblr Blogs
+                    a(href='/auth/producthunt')
+                        .network-box
+                            .network-logo.icon-ph
+                            .network-title Product Hunt
+                    a(href='/auth/facebook')
+                        .network-box
+                            .network-logo.icon-facebook
+                            .network-title Facebook Pages
+                    .clear
+        .overlay.overlay-new-canvas
+            .overlay-item
+                .overlay-header Create a new Canvas
+                .overlay-content
+                    .overlay-block-option
+                        .settings-block-input-name Name
+                        input.settings-block-input#new_canvas_name(type='name' placeholder='Enter a new canvas name')
+                    .overlay-block-option
+                        .button-line.overlay-block-button.create-new-canvas Create Canvas
+        .overlay.overlay-settings
+            .overlay-item
+                .account-settings.x x
+                .overlay-header Settings
+                .settings-content
+                    .settings-left
+                        .settings-header.settings-account Account Settings
+                        .settings-header.settings-billing Billing Options
+                    .settings-right
+                        .settings-account
+                            .overlay-block-option
+                                .settings-block-input-name Name
+                                input.settings-block-input#update_name(type='name' value= udata.name)
+                            .overlay-block-option
+                                .settings-block-input-name Email
+                                input.settings-block-input#update_email(type='email' value= udata.email)
+                            .overlay-block-option
+                                .settings-block-input-name Update Password
+                                input.settings-block-input#update_pass(type='password' placeholder="Enter new password")
+                            .overlay-block-option(style='width:80px')
+                                .button-line.overlay-block-button.save-settings-user Save
+                        .settings-billing
+                            .overlay-block-option
+                                .settings-block-input-name This account is billed to: 
+                                .settings-block-over(style='padding: 0px 0px 15px;')
+                                     -if(udata.payment.last4oncard){
+                                        | xxx-xxxx-!{udata.payment.last4oncard}
+                                        .edit-billing(data-card='yes') Replace your current credit card
+                                     -} else {
+                                        | No credit card information entered
+                                        .edit-billing Add a credit card
+                                     -}
+                            .overlay-block-option
+                                .settings-block-input-name Current Status 
+                                .settings-block-over(style='padding: 0px 0px 15px;')
+                                    .current-status
+                                        | !{udata.user_status}
+                                    .overlay-block-option(style='margin-top:10px; width:160px')
+                                        .button-line.overlay-block-button.upgrade-user(style='background:#F26D7D;') Upgrade
+                .clear

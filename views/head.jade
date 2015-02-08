@@ -1,0 +1,30 @@
+doctype html
+html
+    head
+        title HubYard
+        link(rel='stylesheet', href='/css/style.css')
+        script(src='/js/jquery.min.js')
+        script(src='/js/home.js')
+    -if(useheader === true){
+        body
+            .home-header
+                .home-center
+                    a(href='/')
+                        .home-header-logo-container
+                            .home-header-logo
+                            .home-header-text
+                                | HubYard
+                    .home-header-menu
+                        a(href='http://blog.hubyard.com/')
+                            .home-header-menu-item.grey Blog
+                        a(href='https://github.com/HubYard/HubYard')
+                            .home-header-menu-item.grey Source
+                        a(href='/login')
+                            .home-header-menu-item Login
+                        a(href='/signup')
+                            .home-header-menu-item.beta-push
+                                | New Beta Tester? Sign Up!
+    -} else {
+        body
+    -}
+    block content

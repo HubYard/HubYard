@@ -1,0 +1,29 @@
+extends head
+
+block content
+    .forgot-password
+        .forgot-password-header Enter your email.
+        .forgot-password-container
+            input(placeholder='Email')
+        .button-line.forgot-password-submit Send Recovery Email
+    .overflow-black
+        .login-holder
+            .login-top
+                .login-logo
+                    a(href='/')
+                        .home-header-logo-container
+                            .home-header-logo
+                            .home-header-text
+                                | HubYard
+                        .clear
+            .login-container
+                .login-header Log into your HubYard account
+                .login-alert We recently have locked all accounts until beta testing is open!
+                | <!--- Your password or username is incorrect! <br>  --->
+                input.login-input#email(type='email' placeholder='Email')
+                input.login-input#pass(type='password' placeholder='Password')
+                input.button-line#submit(type='submit' value='Sign In')
+            .login-footer
+                a(href='/signup')
+                    .login-footer-text Accepted? Sign Up!
+                .login-footer-text.forgot-pw(style="text-align: right;") Forgot Password

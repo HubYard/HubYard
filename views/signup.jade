@@ -1,0 +1,20 @@
+extends head
+
+block content
+    .overflow-black
+        .login-holder
+            .login-top
+                .login-logo
+                    a(href='/')
+                        .home-header-logo-container
+                            .home-header-logo
+                            .home-header-text
+                                | HubYard
+                        .clear
+            .login-container
+                .login-header Enter your information and we're off!
+                .login-alert Your password or username is incorrect!
+                input.signup-input#name(type='name' placeholder='Organization/Name')
+                input.signup-input#email(type='email' placeholder='Email')
+                input.signup-input#pass(type='password' placeholder='Password')
+                input.button-line#submit2(type='submit' value='Sign Up')
