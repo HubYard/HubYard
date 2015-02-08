@@ -29,7 +29,6 @@ var mongojs = require('mongojs');
 var keys = require('./keys');
 
 
-//checks ranks
 var rank_check = function(rank, sent, action){
     if(rank === 'enthusiast'){
         if(action === 'network' && sent > 4){ 
@@ -44,7 +43,9 @@ var rank_check = function(rank, sent, action){
             return false;
         } else if(action === 'RSS' && sent <= 4){ 
            return true;
-        } 
+        } else if(action === 'canvasmembers' && sent > 0){ 
+            return false;
+        }
     } else if(rank === 'entrepreneurbetamonthly' || rank === 'entrepreneurbetayearly'){
         if(action === 'network' && sent > 24){ 
             return false;
@@ -57,6 +58,10 @@ var rank_check = function(rank, sent, action){
         } else if(action === 'RSS' && sent > 25){ 
             return false;
         } else if(action === 'RSS' && sent <= 25){ 
+           return true;
+        } else if(action === 'canvasmembers' && sent > 2){ 
+            return false;
+        } else if(action === 'canvasmembers' && sent <= 2){ 
            return true;
         } 
     }
@@ -219,11 +224,14 @@ module.exports = function(app) {
 									newData.user_status = 'enthusiast';
                                     newData.options = {}
                                     newData.payment = {}
-                                    o.payment.subscription = '';
-                                    o.payment.last4oncard = '';
+                                    newData.payment.subscription = '';
+                                    newData.payment.last4oncard = '';
                                     newData.options.canvas = 0;
 									
 									accounts.insert(newData, {safe: true}, function(){
+                                        welcometo(newData, function(){
+                                            console.log('sent');  
+                                        })
 										req.session.user = newData;
 										res.send(200);
 									});
@@ -407,23 +415,37 @@ module.exports = function(app) {
     
     app.post('/canvas/add/user', function(req, res){
         if(req.session.user !== undefined && req.param('id') !== undefined){
-            accounts.findOne({email:req.param('email')}, function(e, x) {
-                if(x){
-                    canvases.findOne({id:req.param('id')}, function(e, o) {
-                        if(o){
-                            o.members[o.members.length] = x.id;
-                            canvases.save(o, {safe: true}, function(){
+            var email = req.param('email').toLowerCase();
+            if(validateEmail(email) != false){
+                canvases.findOne({id:req.param('id')}, function(e, o) {
+                    if(o){
+                        if(rank_check(req.session.user.user_status, o.members.length, 'canvasmembers') === true){                     
+                            accounts.findOne({email:email}, function(e, x) {
+                                if(x){
+                                    if(o.members.indexOf(x.id) === -1){
+                                        o.members[o.members.length] = x.id;
+                                        o.member_emails[o.member_emails.length] = x.email;
+                                        canvases.save(o, {safe: true}, function(){
 
-                                res.send(200);
+                                            res.send({email:x.email, id:x.id});
+                                        });
+                                    } else {
+                                       res.send('This user is already in your group'); 
+                                    }
+                                } else {
+                                   res.send('This person does not have a HubYard account.'); 
+                                }
                             });
                         } else {
-                            res.send(404);   
+                            res.send('Upgrade to add more members'); 
                         }
-                    });
-                } else {
-                    //send an email invite
-                }   
-            });
+                    } else {
+                        res.send(404);  
+                    }   
+                });
+            } else {
+                res.send('You did not enter a valid email');
+            }
         } else {
             res.send(406);   
         }
@@ -431,13 +453,14 @@ module.exports = function(app) {
     
     app.post('/canvas/delete/user', function(req, res){
         if(req.session.user !== undefined && req.param('id') !== undefined){
-            accounts.findOne({email:req.param('email')}, function(e, x) {
+            accounts.findOne({id:req.param('user_id')}, function(e, x) {
                 if(x){
                     canvases.findOne({id:req.param('id')}, function(e, o) {
                         if(o){
-                            o.members.splice(o.members.indexOf(x), 1);
+                            o.members.splice(o.members.indexOf(x.id), 1);
+                            o.member_emails.splice(o.member_emails.indexOf(x.email), 1);
                             canvases.save(o, {safe: true}, function(){
-
+                                
                                 res.send(200);
                             });
                         } else {
@@ -482,11 +505,13 @@ module.exports = function(app) {
                     newData.public = false;
                     newData.name = req.param('name');
                     newData.members = [];
+                    newData.member_emails = [];
                     newData.locations = [];
                     newData.streams = [];
                     newData.owner_id = req.session.user.id;
                     newData.creator = req.session.user.name;
                     newData.members[0] = req.session.user.id;
+                    newData.member_emails[0] = req.session.user.email;
                     newData.id = crypto.randomBytes(5).toString('hex') + '_' + crypto.randomBytes(6).toString('hex') + '_' + crypto.randomBytes(8).toString('hex')  + '_' + crypto.randomBytes(26).toString('hex');
                     canvases.insert(newData, {safe: true}, function(err){
                         if(err){
@@ -525,6 +550,15 @@ module.exports = function(app) {
     
     //find a key
     
+    /*
+    function findIndexByKeyValue: finds "key" key inside "ob" object that equals "value" value
+    example: findIndexByKeyValue(students, 'name', "Jim");
+    object: students = [
+       {name: 'John', age: 100, profession: 'Programmer'},
+       {name: 'Jim', age: 50, profession: 'Carpenter'}
+    ];
+    would find the index of "Jim" and return 1
+    */
 
     function findIndexByKeyValue(obj, key, value)
     {
@@ -1324,7 +1358,7 @@ module.exports = function(app) {
                 var result = body;
                 if(typeof body !== 'object' && body.indexOf('{') !== -1){
 				    result = JSON.parse(body);
-                } else {
+                } else if(typeof body !== 'object'){
                     result = QueryStringToJSON(body);
                 }
 				cb(result);
@@ -1550,13 +1584,17 @@ module.exports = function(app) {
             
             if(instaauth_2.code){
                 generic_request('https://api.instagram.com/oauth/access_token', {}, 'POST', function(o){
-                    var auth = {token:o.access_token};
-                    generic_request('https://api.instagram.com/v1/users/self?access_token=' + auth.token, {}, 'GET', function(o){
-                        var service = 'instagram';
-                        o = o.data;
-                        var user = {name:o.full_name, picture:o.profile_picture, username:o.username, id:o.id}
-                        saveNetwork(req, res, null, auth, user, service);
-                    });
+                    if(o && o.access_token){
+                        var auth = {token:o.access_token};
+                        generic_request('https://api.instagram.com/v1/users/self?access_token=' + auth.token, {}, 'GET', function(o){
+                            var service = 'instagram';
+                            o = o.data;
+                            var user = {name:o.full_name, picture:o.profile_picture, username:o.username, id:o.id}
+                            saveNetwork(req, res, null, auth, user, service);
+                        });
+                    } else {
+                        res.send(400);   
+                    }
                 }, null, null, instaauth_2);
             } else {
                 res.redirect('/');
@@ -1598,13 +1636,17 @@ module.exports = function(app) {
             }
             
             generic_request('https://graph.facebook.com/oauth/access_token?client_id=' + fbauth_2.client_id + '&redirect_uri=' + fbauth_2.redirect_uri + '&client_secret=' + fbauth_2.client_secret + '&code=' + fbauth_2.code + '', {}, 'POST', function(o){
-                var auth = {token:o.access_token};
-                req.session.auth = auth;
-                generic_request('https://graph.facebook.com/v2.2/me/accounts?access_token=' + auth.token, {}, 'GET', function(o){
-                    pages = o;
-                    
-                    res.render('select_account', {auth: auth, pages:pages});
-                });
+                if(o && o.access_token){
+                    var auth = {token:o.access_token};
+                    req.session.auth = auth;
+                    generic_request('https://graph.facebook.com/v2.2/me/accounts?access_token=' + auth.token, {}, 'GET', function(o){
+                        pages = o;
+
+                        res.render('select_account', {auth: auth, pages:pages});
+                    });
+                } else {
+                    res.send(400);   
+                }
             });
         } else {
             res.redirect('/');
@@ -1655,13 +1697,17 @@ module.exports = function(app) {
             }
 
             generic_request('https://api.producthunt.com/v1/oauth/token', {}, 'POST', function(o){
-                var auth = {token:o.access_token};
-                generic_request('https://api.producthunt.com/v1/me', {Authorization: 'Bearer ' + auth.token}, 'GET', function(o){
-                    var service = 'product hunt';
-                    o = o.user;
-                    var user = {name:o.name, picture:o.image_url.original, username:o.username, id:o.id}
-                    saveNetwork(req, res, null, auth, user, service);
-                });
+                if(o && o.access_token){
+                    var auth = {token:o.access_token};
+                    generic_request('https://api.producthunt.com/v1/me', {Authorization: 'Bearer ' + auth.token}, 'GET', function(o){
+                        var service = 'product hunt';
+                        o = o.user;
+                        var user = {name:o.name, picture:o.image_url.original, username:o.username, id:o.id}
+                        saveNetwork(req, res, null, auth, user, service);
+                    });
+                } else {
+                    res.send(400);   
+                }
             }, phauth_2, true);
         } else {
             res.redirect('/');
@@ -1697,12 +1743,16 @@ module.exports = function(app) {
             }
 
             generic_request('https://dribbble.com/oauth/token', {}, 'POST', function(o){
+            if(o && o.access_token){
                 var auth = {token:o.access_token};
-                generic_request('https://api.dribbble.com/v1/user', {Authorization: 'Bearer ' + auth.token}, 'GET', function(o){
-                    var service = 'dribbble';
-                    var user = {name:o.name, picture:o.avatar_url, username:o.username, id:o.id}
-                    saveNetwork(req, res, null, auth, user, service);
-                });
+                    generic_request('https://api.dribbble.com/v1/user', {Authorization: 'Bearer ' + auth.token}, 'GET', function(o){
+                        var service = 'dribbble';
+                        var user = {name:o.name, picture:o.avatar_url, username:o.username, id:o.id}
+                        saveNetwork(req, res, null, auth, user, service);
+                    });
+                } else {
+                    res.send(400);   
+                }
             }, phauth_2, true);
         } else {
             res.redirect('/');
@@ -1934,6 +1984,16 @@ module.exports = function(app) {
         }
 	});
 	
+     
+    app.post('/delete/account', function(req, res) {
+		if(req.session.user){
+            accounts.remove({id:req.session.user.id}, function(){
+                req.session.destroy()
+                res.send(200);
+            });
+        }
+	});
+    
 	app.get('/reset-password', function(req, res) {
 		var email = req.query["e"];
 		var passH = req.query["p"];
@@ -1994,7 +2054,7 @@ module.exports = function(app) {
         }, callback );
     }
 
-    var composeEmail = function(o) //password reset - look into something safer
+    var composeEmail = function(o)
     {
         var link = keys.url_host + '/reset-password?e='+o.email+'&p='+o.pass;
         var html = "<html><body>";
@@ -2009,5 +2069,31 @@ module.exports = function(app) {
         return  [{data:html, alternative:true}];
     }
     
+     var welcometo = function(account, callback)
+    {
+        server.send({
+            from         : keys.email.sender,
+            to           : account.email,
+            subject      : 'Welcome to HubYard!',
+            text         : 'Hey!',
+            attachment   : welcomeEmail(account)
+        }, callback );
+    }
+    
+    var welcomeEmail = function(o)
+    {
+        var html = "<html><body>";
+            html += "Hi "+o.name+",<br><br>";
+            html += "Welcome to HubYard, we hope you enjoy your stay. <br><br> Reply to this email if you have any questions!";
+            html += "<br><br> By the way, your username is :: <b>"+o.email+"</b><br><br>";
+            html += "Cheers,<br>";
+            html += "Shubham Naik, <a href='http://hubyard.com'>Hubyard</a><br><br>";
+            html += "Please send any inquiries to <a href='contact@hubyard.com'>contact@hubyard.com</a><br><br>";
+            html += "</body></html>";
+        return  [{data:html, alternative:true}];
+    }
+    
 
+
+	
 }

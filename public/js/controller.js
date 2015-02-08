@@ -15,6 +15,18 @@ limitations under the License.
 
 */
 
+//error module
+var error_node = function(text){
+    $('.error_message').addClass('visible');
+    $('.error_message-text').html(text);
+     setTimeout(
+        function(){
+            $('.error_message').removeClass('visible');
+        }, 5000)
+}
+
+
+
 //save settings
 $(document).on('click', '.save-settings-user', function () {
     $.ajax({
@@ -26,7 +38,7 @@ $(document).on('click', '.save-settings-user', function () {
 				window.location.href = '/app'
 		},
 		error: function(){
-			alert('There was an error <br><br> Please reload the page.');
+			error_node('There was an error <br><br> Please reload the page.');
 		}
 	});
 });
@@ -74,7 +86,7 @@ var checkval = function(num){
 
 var session = {};
 
-Stripe.setPublishableKey('publishable_key');
+Stripe.setPublishableKey('Publish key');
 
 var approvecard = function(callback){
     $('.payment-errors').hide();
@@ -242,7 +254,7 @@ $(document).on('click', '.create-new-canvas', function(){
 			
 		},
 		error: function(){
-			alert('There was an error <br><br> Please reload the page.');
+			error_node('There was an error <br><br> Please reload the page.');
 		}
 	});
 });
@@ -257,7 +269,7 @@ $(document).on('click', '.save-current-canvas', function (){
             window.location.href = '/app'
 		},
 		error: function(){
-			alert('There was an error <br><br> Please reload the page.');
+			error_node('There was an error <br><br> Please reload the page.');
 		}
 	});
 });
@@ -280,7 +292,7 @@ $(document).on('click', '.delete-current-canvas', function(){
 			
 		},
 		error: function(){
-			alert('There was an error <br><br> Please reload the page.');
+			error_node('There was an error <br><br> Please reload the page.');
 		}
 	});
 });
@@ -296,9 +308,66 @@ $(document).on('click', '.delete-current-network', function(){
 			
 		},
 		error: function(){
-			alert('There was an error <br><br> Please reload the page.');
+			error_node('There was an error <br><br> Please reload the page.');
 		}
 	});
+});
+
+//add a new member to canvas
+$(document).on("keypress", ".add-new-member", function(e){
+    var that = this;
+	if (e.keyCode == 13) {
+		$.ajax({
+            url: "/canvas/add/user",
+            type: "POST",
+            data: {email:$(this).val(), id:$(this).data('id')},
+            success: function(results){
+                if(typeof results === 'string'){
+                    $('.error-block').addClass('visible');
+                    $('.error-block').text(results)
+                } else {
+                    $('.error-block').addClass('visible');
+                    $('.error-block').text('Added!')
+                    var html = '';
+                    html += '<div class="member-block">'
+                    html += '<div class="member-text">' + results.email + '</div>'
+                    html += '<div class="member-remove" data-id="' + results.id + '">x</div>'
+                    html += '<div class="clear"></div>'
+                    html += '</div>'
+                    $(that).parent().parent().find('.settings-block').append(html);
+                    setTimeout(
+                    function(){
+                        $('.error-block').removeClass('visible');
+                    }, 2000)
+                }   
+            },
+            error: function(){
+                error_node('There was an error <br><br> Please reload the page.');
+            }
+        });
+	} 
+});
+
+//add a new member to canvas
+$(document).on("click", ".member-remove", function(e){
+    var that = this;
+    $.ajax({
+        url: "/canvas/delete/user",
+        type: "POST",
+        data: {user_id:$(this).data('id'), id:$(this).parent().data('id')},
+        success: function(results){
+            $('.error-block').addClass('visible');
+            $('.error-block').text('Removed!') 
+            setTimeout(
+            function(){
+                $('.error-block').removeClass('visible');
+            }, 2000)
+            $(that).parent().remove();
+        },
+        error: function(){
+            error_node('There was an error <br><br> Please reload the page.');
+        }
+    });
 });
 
 //create a new stream
@@ -320,7 +389,7 @@ $(document).on('click', '.add-new-rss-link, .news-option', function(){
             }
 		},
 		error: function(){
-			alert('There was an error <br><br> Please reload the page.');
+			error_node('There was an error <br><br> Please reload the page.');
 		}
 	});
 });
@@ -337,7 +406,7 @@ $(document).on('click', '.new-stream', function(){
 			
 		},
 		error: function(){
-			alert('There was an error <br><br> Please reload the page.');
+			error_node('There was an error <br><br> Please reload the page.');
 		}
 	});
 });
@@ -354,7 +423,7 @@ $(document).on('click', '.remove-stream', function(){
             $('#' + results.id).remove();
 		},
 		error: function(){
-			alert('There was an error <br><br> Please reload the page.');
+			error_node('There was an error <br><br> Please reload the page.');
 		}
 	});
 });
@@ -381,7 +450,7 @@ $(document).on('click', '.change-view', function(){
             //
 		},
 		error: function(){
-			alert('There was an error <br><br> Please reload the page.');
+			error_node('There was an error <br><br> Please reload the page.');
 		}
 	});
 });
@@ -471,7 +540,7 @@ $(document).on('click', '.post-comment', function(e){
 
 
 $(document).on('keyup', '.stream-content-comment-input textarea', function(e){
-    $('#comment_chars').text($('.stream-content-comment-input textarea').val().length);
+    $('#comment_chars').text(encodeURI($('.stream-content-comment-input textarea').val()).replace(/%20/g, ' ').length);
 });
 
 $(document).on('click', '.stream-content-return', function(e){
@@ -580,7 +649,21 @@ $(document).on('click', '.switch-canvas .partition-icon, .switch-canvas .partiti
             window.location.href = '/app'
 		},
 		error: function(){
-			alert('There was an error <br><br> Please reload the page.');
+			error_node('There was an error <br><br> Please reload the page.');
+		}
+	});
+});
+
+$(document).on('click', '.delete-account', function(e){
+    $.ajax({
+		url: "/delete/account",
+		type: "POST",
+		success: function(results){
+            alert('Bye Bye... :(');
+            window.location.href = '/'
+		},
+		error: function(){
+			error_node('There was an error <br><br> Please reload the page.');
 		}
 	});
 });
@@ -593,7 +676,7 @@ $(document).on('click', '.post-actions .post-action, .stream-comment-post .post-
     var type = $(this).data('type');
     var text = undefined;
     if(type === 'comment'){
-        text = encodeURIComponent($('.stream-content-comment-input textarea').val());
+        text = encodeURI($('.stream-content-comment-input textarea').val()).replace(/%20/g, ' ');
         network_id = $('.stream-content-comment-content .post').data('network_id');
         post_id = $('.stream-content-comment-content .post').data('post_id');
     }
@@ -716,29 +799,42 @@ var pushposts = function(results){
             } else {
              d = results.data;
             }
-            for(var i = 0; i < d.length; i++){
-                var o = d[i];
-                var data = {};
-                data.user = {};
-                data.user.name = o.user.name;
-                data.user.id = o.user.id;
-                data.id = o.id_str;
-                data.user.picture = o.user.profile_image_url;
-                data.user.username = '@' + o.user.screen_name;
-                data.text = linkify(o.text);
-                data.url = 'http://twitter.com/a/status/' + o.id_str;
-                data.comment = true;
-                if(o.entities !== undefined && o.entities.media !== undefined && o.entities.media[0].media_url){
-                    data.picture = o.entities.media[0].media_url;
-                }
-                data.actions = ['heart', 'retweet']
-                $('#' + results.id + " .stream-content .stream-content-layer").append(projectpost(data, results.service, results.network_id));
-                $('#' + results.id).data('pageation_id', o.id_str);
-                if(i === (d.length - 1)){
-                    $('#' + results.id + " .stream-content .stream-content-layer").append('<div class="clear"></div>');
-                    $('#' + results.id + " .stream-content").data('active', 'no');
-                }
-            };
+            if(d.length){
+                for(var i = 0; i < d.length; i++){
+                    var o = d[i];
+                    var data = {};
+                    data.user = {};
+                    data.user.name = o.user.name;
+                    data.user.id = o.user.id;
+                    data.id = o.id_str;
+                    data.user.picture = o.user.profile_image_url;
+                    data.user.username = '@' + o.user.screen_name;
+                    data.text = linkify(o.text);
+                    data.url = 'http://twitter.com/a/status/' + o.id_str;
+                    data.comment = true;
+                    if(o.entities !== undefined && o.entities.media !== undefined && o.entities.media[0].media_url){
+
+                        if(o.entities.media.length === 1){
+                            data.picture = o.entities.media[0].media_url;
+                        } else {
+                            $.each( o.entities.media, function( x, e ) {  
+                                if(o.entities.media[x].media_url){
+                                    data.photoset[x] =  o.entities.media[x].media_url
+                                }; 
+                            });
+                        }
+                    }
+                    data.actions = ['heart', 'retweet']
+                    $('#' + results.id + " .stream-content .stream-content-layer").append(projectpost(data, results.service, results.network_id));
+                    $('#' + results.id).data('pageation_id', o.id_str);
+                    if(i === (d.length - 1)){
+                        $('#' + results.id + " .stream-content .stream-content-layer").append('<div class="clear"></div>');
+                        $('#' + results.id + " .stream-content").data('active', 'no');
+                    }
+                };
+            } else {
+                 $('#' + results.id + " .stream-content .stream-content-layer").html("<div class='error-something'>Something went wrong, you probably exceeded your rate limit. <br><br> This means that you're refreshing too much, wait around 5 minutes to see this feed again. <br><br> <b> Sorry ! </b></div>");
+            }
         break;
         case 'tumblr': 
             var d = {};
@@ -1035,7 +1131,7 @@ var getposts = function(){
                 pushposts(results);
             },
             error: function(){
-                alert('There was an error <br><br> Please reload the page.');
+                error_node('There was an error <br><br> Please reload the page.');
             }
         });
     }    
@@ -1052,7 +1148,7 @@ $(document).on('click', '.reset-stream', function(){
             pushposts(results);
         },
         error: function(){
-            alert('There was an error <br><br> Please reload the page.');
+            error_node('There was an error <br><br> Please reload the page.');
         }
     });
     
@@ -1063,7 +1159,6 @@ $(document).on('click', '.reset-stream', function(){
 
 $(document).ready(function(){
     getposts();   
-    
     
     //sortable
     $( ".canvas.selected" ).sortable({      
@@ -1084,7 +1179,7 @@ $(document).ready(function(){
                     
                 },
                 error: function(){
-                    alert('There was an error <br><br> Please reload the page.');
+                    error_node('There was an error <br><br> Please reload the page.');
                 }
             });
         }   
@@ -1113,7 +1208,7 @@ $(document).ready(function(){
                         pushposts(results);
                     },
                     error: function(){
-                        alert('There was an error <br><br> Please reload the page.');
+                        error_node('There was an error <br><br> Please reload the page.');
                     }
                 });
            }
@@ -1144,7 +1239,7 @@ $(document).ready(function(){
                 //
             },
             error: function(){
-                alert('There was an error <br><br> Please reload the page.');
+                error_node('There was an error <br><br> Please reload the page.');
             }
         });
         
