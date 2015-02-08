@@ -52,7 +52,7 @@ module.exports = {
 }
 ```
 
-<b>NOTE: If you want to test payments, check /public/js/controller.js:60 and add your publisher key.</b>b>
+<b>NOTE: If you want to test payments, check /public/js/controller.js:60 and add your publisher key.</b>
 
 <b>Step 4</b>
 Run and Enjoy (runs on localhost:4002)
