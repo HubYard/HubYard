@@ -1,17 +1,19 @@
 /*
-Copyright 2015 Shubham Naik // HubYard
+HubYard - Social Media Management
+Copyright (C) 2015  Shubham Naik // HubYard
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-   http://www.apache.org/licenses/LICENSE-2.0
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 */
 
@@ -86,7 +88,7 @@ var checkval = function(num){
 
 var session = {};
 
-Stripe.setPublishableKey('Publish key');
+Stripe.setPublishableKey('publish key');
 
 var approvecard = function(callback){
     $('.payment-errors').hide();
@@ -372,43 +374,56 @@ $(document).on("click", ".member-remove", function(e){
 
 //create a new stream
 $(document).on('click', '.add-new-rss-link, .news-option', function(){
-    var query = $(this).parent().find('input').val() || $(this).data('url');
-    var user = $(this).html();
-    if(user === 'Add New Stream'){
-        user = 'Custom RSS';   
-    }
-    $.ajax({
-		url: "/stream/new",
-		type: "POST",
-		data: {service:'RSS', type:'RSS', id:$('.switch-canvas.selected').data('id'), user:user, network_id:'RSS', query:query},
-		success: function(results){
-            if(results === 'nope'){
-                window.location.href = '/app?upgrade=true'
-            } else {
-                window.location.href = '/app'
+    if($('.switch-canvas.selected').data('id') !== undefined){
+        var query = $(this).parent().find('input').val() || $(this).data('url');
+        var user = $(this).html();
+        if(user === 'Add New Stream'){
+            user = 'Custom RSS';   
+        }
+        $.ajax({
+            url: "/stream/new",
+            type: "POST",
+            data: {service:'RSS', type:'RSS', id:$('.switch-canvas.selected').data('id'), user:user, network_id:'RSS', query:query},
+            success: function(results){
+                if(results === 'nope'){
+                    window.location.href = '/app?upgrade=true'
+                } else {
+                    window.location.href = '/app'
+                }
+            },
+            error: function(){
+                error_node('There was an error <br><br> Please reload the page.');
             }
-		},
-		error: function(){
-			error_node('There was an error <br><br> Please reload the page.');
-		}
-	});
+        });
+    } else {
+        error_node('Please create a canvas or select an existing canvas first!');
+        $('.overlay-new-canvas').show();
+        $('.overlay-new-newsorrss').hide();
+        
+    }
 });
 
 //create a new stream
 $(document).on('click', '.new-stream', function(){
-    var query = $(this).parent().find('input').val() || undefined;
-    $.ajax({
-		url: "/stream/new",
-		type: "POST",
-		data: {service:$(this).data('service'), type:$(this).data('type'), id:$('.switch-canvas.selected').data('id'), user:$(this).data('user'), network_id:$(this).data('network_id'), query:query},
-		success: function(results){
-				window.location.href = '/app'
-			
-		},
-		error: function(){
-			error_node('There was an error <br><br> Please reload the page.');
-		}
-	});
+    if($('.switch-canvas.selected').data('id') !== undefined){
+        var query = $(this).parent().find('input').val() || undefined;
+        $.ajax({
+            url: "/stream/new",
+            type: "POST",
+            data: {service:$(this).data('service'), type:$(this).data('type'), id:$('.switch-canvas.selected').data('id'), user:$(this).data('user'), network_id:$(this).data('network_id'), query:query},
+            success: function(results){
+                    window.location.href = '/app'
+
+            },
+            error: function(){
+                error_node('There was an error <br><br> Please reload the page.');
+            }
+        });
+    } else {
+        $('.overlay-networks').hide();
+        error_node('Please create a canvas or select an existing canvas first!');
+        $('.overlay-new-canvas').show();
+    }
 });
 
 
@@ -958,7 +973,7 @@ var pushposts = function(results){
                     data.picture = o.screenshot_url['850px'];
                     data.imageurl = o.redirect_url;
                 }
-                data.actions = ['heart']
+                data.actions = ['']
                 
                 $('#' + results.id + " .stream-content .stream-content-layer").append(projectpost(data, results.service, results.network_id));
                 

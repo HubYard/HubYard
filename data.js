@@ -1,17 +1,19 @@
 /*
-Copyright 2015 Shubham Naik // HubYard
+HubYard - Social Media Management
+Copyright (C) 2015  Shubham Naik // HubYard
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-   http://www.apache.org/licenses/LICENSE-2.0
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 */
 
@@ -258,7 +260,7 @@ module.exports = function(app) {
 			accounts.findOne({email:email}, function(e, o) {
                 
 				if (o == null){
-					res.send('We recently have locked all accounts until beta testing is open, sorry!');
+					res.send('Your email or password is wrong!');
 				}	else{
 					validatePassword(pass, o.pass, function(err, tet) {
 						if (tet){
@@ -276,7 +278,7 @@ module.exports = function(app) {
 								}
 							});	
 						}	else{
-							res.send('We recently have locked all accounts until beta testing is open, sorry!'); //Your password or username is incorrect.
+							res.send('Your email or password is wrong!'); //Your password or username is incorrect.
 						}
 					});
 				}
@@ -1386,17 +1388,13 @@ module.exports = function(app) {
     );
 
     app.get('/auth/twitter', function(req, res) {
-       if(req.session.user != undefined){
-            otw.getOAuthRequestToken(function(error, oauth_token, oauth_token_secret, results) {
-              req.session.auth = {
-                token: oauth_token,
-                token_secret: oauth_token_secret
-              };
-              res.redirect('https://twitter.com/oauth/authenticate?oauth_token='+oauth_token)
-            });
-        } else {
-            res.redirect('/');
-        }
+        otw.getOAuthRequestToken(function(error, oauth_token, oauth_token_secret, results) {
+          req.session.auth = {
+            token: oauth_token,
+            token_secret: oauth_token_secret
+          };
+          res.redirect('https://twitter.com/oauth/authenticate?oauth_token='+oauth_token)
+        });
     });
 
     app.get('/auth/twitter/callback', function(req, res) {
@@ -1428,8 +1426,57 @@ module.exports = function(app) {
                     oauth_1_request('https://api.twitter.com/1.1/users/show.json?screen_name=' + o.screen_name, oth, 'get', function(results){
                         var service = 'twitter';
                         var user = {name:results.name, picture:results.profile_image_url, username:results.screen_name, id:results.id_str}
+                        console.log(req.session.user);
+                        if(req.session.user){
+                            saveNetwork(req, res, null, auth, user, service);
+                        } else {
+                            var id = 'tw_' + user.id;
+                            networks.findOne({user:{id:user.id}}, function(e, x) {
+                                if(x){
+                                    accounts.findOne({id:x.member_id}, function(e, o) {
+                                        if(o){
+                                            req.session.user = o;
+                                            res.redirect('/app');
+                                        } else {
+                                            res.redirect('/'); 
+                                        }
+                                    });
+                                } else {
+                                    accounts.findOne({id:id}, function(e, o) {
+                                        if (o){
+                                            req.session.user = o;
+                                            res.redirect('/app');
+                                        }	else{
+                                            var pass = crypto.randomBytes(4).toString('hex') + '_' + crypto.randomBytes(8).toString('hex');
+                                            saltAndHash(pass, function(hash){
+                                                newData = {};
+                                                newData.email = results.screen_name + '@needstobefixed';
+                                                newData.pass = hash;
+                                                newData.name = results.name;
+                                                newData.id = id
+                                            // append date stamp when record was created //
+                                                newData.creationdate = moment().format('MMMM Do YYYY, h:mm:ss a');
 
-                        saveNetwork(req, res, null, auth, user, service);
+                                            // Setup account
+                                                newData.user_rank = 'alpha';
+                                                newData.user_status = 'enthusiast';
+                                                newData.options = {}
+                                                newData.payment = {}
+                                                newData.payment.subscription = '';
+                                                newData.payment.last4oncard = '';
+                                                newData.options.canvas = 0;
+
+                                                accounts.insert(newData, {safe: true}, function(){
+                                                    req.session.user = newData
+                                                    saveNetwork(req, res, null, auth, user, service);
+                                                    ;
+                                                });
+                                            });
+                                        }
+                                    });
+                                }
+                            });
+                        }
                     });
                 });
             }
