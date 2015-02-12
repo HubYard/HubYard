@@ -3,22 +3,47 @@
     .overlay-item
         .tutorial-header Cool!
         .tutorial-text HubYard is really simple, all you need to do is first create a Canvas (where your feeds will be located)
-        .tutoral-next(data-next='2') next
+        .tutoral-next(data-next='2') Next: Connecting Networks
 .live_tut.tutorial_object.tutorial_2
     .overlay-arrow
     .overlay-item
         .tutorial-header Networks!
         .tutorial-text Then you can add networks, like Twitter, Tumblr, or a Facebook Page.
-        .tutoral-next(data-next='4') next
+        .tutoral-next(data-next='4') Next: Managing Networks
 .live_tut.tutorial_object.tutorial_4
     .overlay-arrow
     .overlay-item
         .tutorial-header Networks! Cont.
         .tutorial-text Once added, just click the settings button!
-        .tutoral-next(data-next='3') next
+        .tutoral-next(data-next='3') Next: Adding Feeds
 .live_tut.tutorial_object.tutorial_3
     .overlay-arrow
     .overlay-item
-        .tutorial-header Final Step!
-        .tutorial-text Finally you can add some feeds. <br><br> I hope you understood, now click done and try it yourself! :)
-        .tutoral-next(data-next='done') done
+        .tutorial-header We're almost there!
+        .tutorial-text Finally you can add some feeds. <br><br> Click next to seem them!
+        .tutoral-next(data-next='5') Next: Your Feed
+.live_tut.tutorial_object.tutorial_5
+    .overlay-arrow
+    .overlay-item
+        .tutorial-header We're done!
+        .tutorial-text 
+            | Now you have a feed where all your data desires can come true :)
+        .tutorial-header Hungry for more? Here's some tips!
+        .tutorial-text(style='padding-bottom: 0px;')
+            li Click the <a class='icon-eye'></a> to change your feed's appearance!
+            li Click the <a class='icon-compass'></a> to try out some experimental features!
+            li Or <a style='text-decoration:underline' target='_blank' href='http://twitter.com/hubyard'>follow us on @hubyard</a> for giveaways, support, and more info! :)
+            div(style='text-align:center; margin-top:15px') <a href="https://twitter.com/hubyard" class="twitter-follow-button" data-show-count="false">Follow @hubyard</a> <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+        .tutoral-next(data-next='done') Done!
+| <!-- le -->
+.canvas.tutorial_object.tutorial_5
+    .stream(class='setup-default')
+        .stream-header
+            .stream-title
+                | <a style='font-weight:bold'>@!{udata.name}</a> <a class='subdata'>The Social Network Recent Updates</a>
+            .side-options
+                a.icon-eye
+                a.icon-ccw
+                a.icon-cancel
+        .stream-content
+            .stream-content-layer 

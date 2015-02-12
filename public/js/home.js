@@ -25,6 +25,12 @@ $(document).on('click', '.forgot-pw', function(){
     $('.forgot-password').toggle();
 });
 
+$(document).on('click', '.nevermind-password', function(){
+    $(this).parent().toggle();
+});
+
+
+
 $(document).on('click', '.forgot-password-submit', function(){
     if($('.forgot-password-container input').val() !== ''){
         $.ajax({
@@ -35,7 +41,7 @@ $(document).on('click', '.forgot-password-submit', function(){
                 alert('Success! Check your Email for your recovery link');   
             },
             error: function(){
-                alert("Your email doesn't seem to exit");
+                alert("Your email doesn't seem to exit. If you created an account before 2015, it was deleted in the upgrade, sorry :(");
             }
         });   
     } else {

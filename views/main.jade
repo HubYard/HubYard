@@ -17,6 +17,7 @@ block content
                 .header-option-buttons
                     .header-option-button.minimize-width.icon-left-open
                     .header-option-button.open-setting-options.icon-cog
+                    .header-option-button.more-stuff.icon-compass(style='background:transparent; margin-right: 8px;')
             .partition
                 .partition-header.icon-flash  Connected Canvases
                 .partition-data
@@ -115,7 +116,8 @@ block content
                                             -}
                                     .stream-content-comment(id='comment_' + canvases[i].streams[x].id)
                                         .stream-layer
-                                            .stream-content-return.icon-right-open Return
+                                            div
+                                                .stream-content-return.icon-right-open Return
                                             .stream-content-comment-content-full
                                                 .stream-content-comment-content
                                                 .stream-content-comment-input
@@ -128,14 +130,18 @@ block content
                                                     .clear
                                     .stream-content-user(id='user_' + canvases[i].streams[x].id)
                                         .stream-layer
-                                            .stream-content-return.icon-right-open Return
-                                            .stream-content-head
-                                                .stream-content-user-picture
-                                                .stream-content-user-name
-                                                .clear
-                                            .stream-content-user-details
-                                            .stream-content-user-stats
-                                            .width-burn
+                                            .stream-user
+                                                .stream-content-return.icon-right-open Return
+                                                .stream-content-head
+                                                    .stream-content-user-picture
+                                                    .stream-content-user-name
+                                                    .clear
+                                                .stream-content-user-details
+                                                .stream-content-user-stats
+                                                .width-burn
+                                            .stream-user-content-feed(id='user_own_' + canvases[i].streams[x].id)
+                                                .stream-content
+                                                    .stream-content-layer
                                     .stream-content
                                         .stream-content-layer 
                             -}
@@ -151,6 +157,19 @@ block content
             include tutorial
         -}
     overlays
+        #item_noemail.modal
+            .modal-text Your email isn't real. <br><br> (we need it to be so we can keep you informed about your payment) <br><br> Please create a real one. <br><br> (if it is real, just refresh this page and try again)
+            .button-line.modal-quit Got It!
+        #item_whatisthis.modal
+            .modal-text This section is for experimental features, be warned, you might break your browser or something.
+            .button-line.modal-quit Got It!
+        .orbs
+            .orb#orb_whatisthis
+                .orb-icon.icon-lamp
+                .orb-text What's this?
+            .orb
+                .orb-icon.icon-pencil
+                .orb-text Publish   
         .nowidth
             .header-option-button.minimize-width.icon-right-open
         .overlay.overlay-setting-options
@@ -251,6 +270,7 @@ block content
                             .overlay-block-option
                                 .settings-block-input-name Email
                                 input.settings-block-input#update_email(type='email' value= udata.email)
+                                input.settings-block-input#confirm_email(diabled='disabled' hidden='hidden' type='email' value= udata.email)
                             .overlay-block-option
                                 .settings-block-input-name Update Password
                                 input.settings-block-input#update_pass(type='password' placeholder="Enter new password")

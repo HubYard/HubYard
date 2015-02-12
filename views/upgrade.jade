@@ -3,7 +3,7 @@
         .leave-upgrade.x x
         .upgrade-box-top
             .upgrade-header Sweet, it’s upgrade time!
-            .upgrade-subheader <a style='font-weight:bold'>(save more than 50% in beta</a> and cancel and downgrade at any time)
+            .upgrade-subheader <a style='font-weight:bold'>(save up to 50% in beta</a> and cancel and downgrade at any time)
         .upgrade-mid
             .upgrade-toggle
                 .upgrade-toggle-option(style='border-radius:2px 0px 0px 2px;') Monthly Billing
@@ -22,7 +22,7 @@
                 -if(udata.user_status === 'enthusiast'){
                     .current-plan Current Plan
                 -} else {
-                    .upgrade-done(data-type='enthusiast' data-payment='nothing forever. This will reset your networks and canvases!')  Choose Plan
+                    .upgrade-done(data-type='enthusiast' data-payment='Are you sure? This will reset your networks and canvases!')  Choose Plan
                 -}
             .upgrade-option.upgrade-yearly
                 .upgrade-option-header Entrepeneur Beta
@@ -30,13 +30,13 @@
                     .upgrade-item(style='font-weight:bold') 25 Networks
                     .upgrade-item 5 Canvases
                     .upgrade-item 25 News/RSS Feeds
-                    .upgrade-item 3 Team Members
+                    .upgrade-item 5 Team Members
                     .upgrade-item(style='font-weight:bold') Priority Support
                 .upgrade-cost $13 /mon
                 -if(udata.user_status === 'entrepreneurbetayearly'){
                     .current-plan Current Plan
                 -} else {
-                    .button-line.upgrade-done(data-type='entrepreneurbetayearly' data-payment='US$13 Monthly.')  Choose Plan
+                    .button-line.upgrade-done(data-type='entrepreneurbetayearly' data-payment='You will be immediately charged US$156 Annually')  Choose Plan
                 -}
             .upgrade-option.upgrade-monthly
                 .upgrade-option-header Entrepeneur Beta
@@ -44,25 +44,50 @@
                     .upgrade-item(style='font-weight:bold') 25 Networks
                     .upgrade-item 5 Canvases
                     .upgrade-item 25 News/RSS Feeds
-                    .upgrade-item 3 Team Members
+                    .upgrade-item 5 Team Members
                     .upgrade-item(style='font-weight:bold') Priority Support
                 .upgrade-cost $15 /mon
                 -if(udata.user_status === 'entrepreneurbetamonthly'){
                     .current-plan Current Plan
                 -} else {
-                    .button-line.upgrade-done(data-type='entrepreneurbetamonthly' data-payment='US$156 Annually.')  Choose Plan
+                    .button-line.upgrade-done(data-type='entrepreneurbetamonthly' data-payment='You will be immediately charged US$15 Monthly')  Choose Plan
                 -}
-            .upgrade-option(style='border-left:0px;')
-                .upgrade-option-header Enterprise Beta
+            .upgrade-option.upgrade-yearly
+                .upgrade-option-header Awesome Beta Plan!
                 .upgrade-items
-                    .upgrade-item(style='font-weight:bold') 99 to Unlimited Networks
-                    .upgrade-item 50 to Unlimited Canvases
-                    .upgrade-item 99 to Unlimited News/RSS Feeds
-                    .upgrade-item 10 Team Members
+                    .upgrade-item(style='font-weight:bold') 12 Networks
+                    .upgrade-item 5 Canvases
+                    .upgrade-item 15 News/RSS Feeds
+                    .upgrade-item 2 Team Members
                     .upgrade-item(style='font-weight:bold') Priority Support
-                .upgrade-cost Soon
-                a(href='mailto:contact@hubyard.com')
-                    .current-plan Contact Us
+                .upgrade-cost $5 /mon
+                -if(udata.user_status === 'awesomebetayearly'){
+                    .current-plan Current Plan
+                -} else {
+                    .button-line.upgrade-done.upgrade-done-normal(data-type='awesomebetayearly' data-payment='You will be immediately charged US$60 Annually')  Choose Plan
+                -}
+            .upgrade-option.upgrade-monthly
+                .upgrade-option-header Awesome Beta Plan!
+                .upgrade-items
+                    .upgrade-item(style='font-weight:bold') 12 Networks
+                    .upgrade-item 5 Canvases
+                    .upgrade-item 15 News/RSS Feeds
+                    .upgrade-item 2 Team Members
+                    .upgrade-item(style='font-weight:bold') Priority Support
+                .upgrade-cost $8 /mon
+                -if(udata.user_status === 'awesomebetamonthly'){
+                    .current-plan Current Plan
+                -} else {
+                    .button-line.upgrade-done.upgrade-done-normal(data-type='awesomebetamonthly' data-payment='You will be immediately charged US$8 Monthly')  Choose Plan
+                -}
+.upgrade-finish-overlay
+    .overlay-update-black
+        .upgrade-finish-box
+            .sweet-top Sweet! Confirm your purchase!
+            .purchase-final
+            .final-decision
+                .button-line.upgrade-finish Upgrade! :)
+                .button-nevermind Nevermind
 .overlay-update-card
     .overlay-update-black
         .update-card-container.upgrade-box
@@ -79,9 +104,9 @@
                             input.settings-block-input.card-number( autocomplete="off" type='text' placeholder='Card Number')
                     .update-card-split(style='width:20%')
                         .update-card-option
-                            .settings-block-input-name CVC
+                            .settings-block-input-name Security Code
                         .update-card-option
-                            input.settings-block-input.card-cvc(autocomplete="off" placeholder='CVC' type='text' maxlength="5" )
+                            input.settings-block-input.card-cvc(autocomplete="off" placeholder='Code' type='text' maxlength="5" )
                 .clear
                 .centralism(style='width:50%; margin:0 auto; padding:15px; text-align:center')
                     .update-card-split(style='width:50%')
@@ -96,4 +121,3 @@
                 .update-card-option(style='text-align: center;')
                     .settings-block-input-name.final-purchase
                     button.button-line.overlay-block-button.save-billing(style='background:#F26D7D;' data-go='normal') Update Credit Card
-                

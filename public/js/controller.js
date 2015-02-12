@@ -25,6 +25,13 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 */
 
+//validate email
+var validateEmail = function(e)
+{
+    var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(e);
+}
+
 //error module
 var error_node = function(text){
     $('.error_message').addClass('visible');
@@ -70,9 +77,20 @@ $(document).on('click', ' .post-extra-menu-holder', function(e){
     e.stopPropagation();
 });
 
+$(document).on('click', ' .more-stuff', function(e){
+    $('.orbs').toggle();
+});
+
+$(document).on('click', ' #orb_whatisthis, #item_whatisthis .modal-quit', function(e){
+    $('#item_whatisthis').toggle();
+});
+
+
+ 
 
 //redir
 $(document).on('click', '.redir', function (e) {
+    e.stopPropagation();
     if($(this).parent().parent().parent().find('.stream-header').find('.side-options').find('.change-view').data('type') !== 'reader'){
         OpenInNewTab($(this).data('href'));
     }
@@ -96,7 +114,7 @@ var checkval = function(num){
 
 var session = {};
 
-Stripe.setPublishableKey('publish key');
+Stripe.setPublishableKey('STRIPE');
 
 var approvecard = function(callback){
     $('.payment-errors').hide();
@@ -129,11 +147,15 @@ var approvecard = function(callback){
 
 //update card part 1
 $(document).on('click', '.edit-billing, .update-card-container .x', function(e){
-    $('button.save-billing').text('Update Credit Card');
-    $('.upgrade-header').text('Update your credit card!');
-    $('.final-purchase').text('This will replace your current card for charging.');
-    $('.save-billing').data('go', 'normal');
-    $('.overlay-update-card').toggle();
+    if(validateEmail($('#confirm_email').val()) === true){
+        $('button.save-billing').text('Update Credit Card');
+        $('.upgrade-header').text('Update your credit card!');
+        $('.final-purchase').text('This will replace your current card for charging.');
+        $('.save-billing').data('go', 'normal');
+        $('.overlay-update-card').toggle();
+    } else {
+        $('#item_noemail').show();
+    }
 });
 
 //update card part 2
@@ -192,15 +214,23 @@ $(document).on('click', '.upgrade-toggle-option', function(){
     }
 });
 
-
+$(document).on('click', '.button-nevermind', function(){
+    session.type = undefined;
+    $('.upgrade-finish-overlay').hide();
+});
 
 //new upgrade
 $(document).on('click', '.upgrade-done', function(){
     session.type = $(this).data('type');
+    $('.purchase-final').text($(this).data('payment'));
+    $('.upgrade-finish-overlay').show();
+});
+
+//upgrade final
+$(document).on('click', '.upgrade-finish', function(){
     if($('.edit-billing').data('card') === undefined && session.type !== 'enthusiast'){
         $('.save-billing').data('go', 'notnormal');
         $('.upgrade-header').text("Sweet, we'll need your payment information too!");
-        $('.final-purchase').text('You will be charged ' + $(this).data('payment'));
         $('button.save-billing').text('Secure Purchase with Stripe');
         $('.overlay-update-card').show();
     } else {
@@ -220,13 +250,22 @@ $(document).on('click', '.upgrade-done', function(){
 
 //goto upgrade
 $(document).on('click', '.upgrade-user', function(){
-    $('.upgrade-overlay').show();
+    if(validateEmail($('#confirm_email').val()) === true){
+        $('.upgrade-overlay').show();
+    } else {
+        $('#item_noemail').show();
+    }
 });
+
+$(document).on('click', '#item_noemail .modal-quit', function(e){
+    $('#item_noemail').hide();
+});
+
 
 
 //accept payment
 /*var handler = StripeCheckout.configure({
-    key: 'pk_test_aiA0cpAE2UUCXpR5s9uSETf6',
+    key: '',
     token: function(token) {
     
         $.ajax({
@@ -380,6 +419,74 @@ $(document).on("click", ".member-remove", function(e){
     });
 });
 
+
+var newstream = function(data){
+        data.type = data.type || '';
+        data.query = data.query || '';
+    var html = '';
+        html += '<div data-id="'+ data.id +'" id="'+data.id +'" data-service="'+data.service +'" data-network_id="'+data.network_id +'" data-type="'+data.type +'" data-query="'+data.query +'" class="stream setup-default">'
+        html += '<div class="stream-header">'
+        html += '<div class="stream-title">'
+        html += '<a style="font-weight:bold">@'+data.user +'</a> <a class="subdata">'+data.service +' '
+        if(data.query !== ''){
+        html += data.query
+        } else {
+        html += data.type.replace(/_/g," "); 
+        }
+        html += '</a></div>'
+        html += '<div class="side-options"><a data-id="'+data.id +'" data-service="'+data.service +'" data-type="'+data.type +'" class="change-view icon-eye"></a><a data-id="'+data.id +'" data-service="'+data.service +'" class="reset-stream icon-ccw"><a data-id="'+data.id +'" data-service="'+data.service +'" class="remove-stream icon-cancel"></a></div>'
+        html += '</div>'
+        html += '<div id="comment_'+data.id +'" class="stream-content-comment">'
+        html += '<div class="stream-layer">'
+        html += '<div>'
+        html += '<div class="stream-content-return icon-right-open">Return</div>'
+        html += '</div>'
+        html += '<div class="stream-content-comment-content-full">'
+        html += '<div class="stream-content-comment-content"></div>'
+        html += '<div class="stream-content-comment-input">'
+        html += '<textarea placeholder="Respond to this user!"></textarea>'
+        html += '</div>'
+        html += '<div class="stream-content-comment-footer">'
+        html += '<div class="stream-comment-characters"><a id="comment_chars">0</a> Characters</div>'
+        html += '<div class="stream-comment-post">'
+        html += '<div data-type="comment" class="button-line overlay-block-button post-action">Post</div>'
+html += '</div>'
+        html += '<div class="clear"></div>'
+        html += '</div>'
+        html += '</div>'
+        html += '</div>'
+        html += '</div>'
+        html += '<div id="user_'+data.id +'" class="stream-content-user">'
+        html += '<div class="stream-layer">'
+        html += '<div class="stream-user">'
+        html += '<div class="stream-content-return icon-right-open">Return</div>'
+        html += '<div class="stream-content-head">'
+        html += '<div class="stream-content-user-picture"></div>'
+        html += '<div class="stream-content-user-name"></div>'
+        html += '<div class="clear"></div>'
+        html += '</div>'
+        html += '<div class="stream-content-user-details"></div>'
+        html += '<div class="stream-content-user-stats"></div>'
+        html += '<div class="width-burn"></div>'
+        html += '</div>';
+        html += '<div id="user_own_'+data.id +'" class="stream-user-content-feed">'
+        html += '<div class="stream-content">'
+        html += '<div class="stream-content-layer"> </div>'
+        html += '</div>'
+        html += '</div>'
+        html += '</div>'
+        html += '</div>'
+        html += '<div class="stream-content">'
+        html += '<div class="stream-content-layer"> </div>'
+        html += '</div>'
+        html += '</div>'
+        
+        $('.canvas').append(html);
+        checkscroll('#' + data.id + '  > .stream-content');
+        reset_stream(data.id);
+        $('.overlay-new-newsorrss, .overlay-networks').css('display', 'none');
+}
+
 //create a new stream
 $(document).on('click', '.add-new-rss-link, .news-option', function(){
     if($('.switch-canvas.selected').data('id') !== undefined){
@@ -396,7 +503,7 @@ $(document).on('click', '.add-new-rss-link, .news-option', function(){
                 if(results === 'nope'){
                     window.location.href = '/app?upgrade=true'
                 } else {
-                    window.location.href = '/app'
+                    newstream(results);
                 }
             },
             error: function(){
@@ -420,7 +527,7 @@ $(document).on('click', '.new-stream', function(){
             type: "POST",
             data: {service:$(this).data('service'), type:$(this).data('type'), id:$('.switch-canvas.selected').data('id'), user:$(this).data('user'), network_id:$(this).data('network_id'), query:query},
             success: function(results){
-                    window.location.href = '/app'
+                newstream(results);
 
             },
             error: function(){
@@ -567,7 +674,7 @@ $(document).on('keyup', '.stream-content-comment-input textarea', function(e){
 });
 
 $(document).on('click', '.stream-content-return', function(e){
-    $(this).parent().parent().animate({width:'toggle'});
+    $(this).parent().parent().parent().animate({width:'toggle'});
 });
 
 $(document).on('click', '.post-header', function(e){
@@ -587,11 +694,13 @@ $(document).on('click', '.post-header', function(e){
         $.ajax({
             url: "/post/details",
             type: "POST",
-            data: {user_id:user_id, network_id:network_id, type:type},
+            data: {user_id:user_id, network_id:network_id, type:type, stream_id:stream_id},
             success: function(results){
                 var service = results.service;
-
+                var stream_id = results.stream_id;
+                var network_id = results.network_id;
                 var results = results.data;
+                
                 var o = {};
 
                 if(service === 'twitter'){
@@ -604,6 +713,59 @@ $(document).on('click', '.post-header', function(e){
                     o.stats = [];
                     o.stats[0] = {count:results.followers_count, name:'followers'}
                     o.stats[1] = {count:results.friends_count, name:'following'};
+                 
+                    $.ajax({
+                        url: "/stream/collect",
+                        type: "POST",
+                        data: {service:'twitter', type:'user_search_feed', network_id:network_id, query:results.screen_name, id:stream_id},
+                        success: function(results){
+                                
+                                $('#user_own_' + results.id + ' > .stream-content').css('height', 'calc(100% - ' + $('#user_' + results.id + ' .stream-user').height() + 'px)');
+                                $('#user_own_' + results.id + ' > .stream-content').data('active', 'yes');
+                                results.id = 'user_own_' + results.id;
+                                pushposts(results);
+                        },
+                        error: function(){
+                            error_node('There was an error <br><br> Please reload the page.');
+                        }
+                    });
+                } else if(service === 'tumblr'){
+                    if(results.response && results.response.blog){
+                    results = results.response.blog;
+                    o.picture = 'http://api.tumblr.com/v2/blog/' + results.name + '.tumblr.com/avatar/512';
+                    o.name = results.title;
+                    o.username = results.name + '.tumblr.com'
+                    o.bio = results.description || "A tumblr user"
+                    o.url = results.url || "http://" + results.name + '.tumblr.com'
+                    o.real = "http://" + results.name + '.tumblr.com'
+                    o.stats = [];
+                    o.stats[0] = {count:results.posts, name:'posts'}
+                    o.stats[1] = {count:results.likes, name:'likes'};
+                        
+                    $.ajax({
+                        url: "/stream/collect",
+                        type: "POST",
+                        data: {service:'tumblr', type:'user_search_feed', network_id:network_id, query:results.name, id:stream_id},
+                        success: function(results){
+                                
+                                $('#user_own_' + results.id + ' > .stream-content').css('height', 'calc(100% - ' + $('#user_' + results.id + ' .stream-user').height() + 'px)');
+                                $('#user_own_' + results.id + ' > .stream-content').data('active', 'yes');
+                                results.id = 'user_own_' + results.id;
+                                pushposts(results);
+                        },
+                        error: function(){
+                            error_node('There was an error <br><br> Please reload the page.');
+                        }
+                    });
+                    }
+                } else if(service === 'facebook page'){
+                    o.picture = 'https://graph.facebook.com/v2.2/' + results.id + '/picture';
+                    o.name = results.name;
+                    o.username = results.name
+                    o.bio = "A facebook user"
+                    o.url = results.link || ""
+                    o.real = "http://facebook.com/" + results.id; 
+                    o.stats = [];
                 } else if(service === 'instagram'){
                     o.picture = results.profile_picture;
                     o.name = results.full_name;
@@ -614,6 +776,21 @@ $(document).on('click', '.post-header', function(e){
                     o.stats = [];
                     o.stats[0] = {count:results.counts.followed_by, name:'followers'}
                     o.stats[1] = {count:results.counts.follows, name:'following'};
+                    $.ajax({
+                        url: "/stream/collect",
+                        type: "POST",
+                        data: {service:'instagram', type:'user_search_feed', network_id:network_id, query:results.username, id:stream_id},
+                        success: function(results){
+                                
+                                $('#user_own_' + results.id + ' > .stream-content').css('height', 'calc(100% - ' + $('#user_' + results.id + ' .stream-user').height() + 'px)');
+                                $('#user_own_' + results.id + ' > .stream-content').data('active', 'yes');
+                                results.id = 'user_own_' + results.id;
+                                pushposts(results);
+                        },
+                        error: function(){
+                            error_node('There was an error <br><br> Please reload the page.');
+                        }
+                    });
                 } else if(service === 'product hunt'){
                     o.picture = results.image_url.original;
                     o.name = results.name;
@@ -642,6 +819,8 @@ $(document).on('click', '.post-header', function(e){
                     o.stats[3] = {count:results.followers_count, name:'followers'};
                     o.stats[4] = {count:results.followings_count, name:'following'};
                 }
+                
+                
 
                 $('.stream-content-user-picture').html("<img src='" + o.picture + "'>");
                 $('.stream-content-user-name').html("<a class='post-header-user'>" + o.name + "</a> <a class='post-header-username'>" + o.username + "</a>");
@@ -657,7 +836,7 @@ $(document).on('click', '.post-header', function(e){
 
             },
             error: function(){
-
+                error_node('There was an error <br><br> Please reload the page.');
             }
         });
     }
@@ -729,6 +908,13 @@ $(document).on('click', '.post-actions .post-action, .stream-comment-post .post-
 	});
 });
 
+//open stuff in new tabs
+var externalLinks = function() {
+  for(var c = document.getElementsByTagName("a"), a = 0;a < c.length;a++) {
+    var b = c[a];
+    b.getAttribute("href") && b.hostname !== location.hostname && (b.target = "_blank")
+  }
+}
 
 //turn text 2 links
 function linkify(text) {  
@@ -832,7 +1018,11 @@ var pushposts = function(results){
                     data.id = o.id_str;
                     data.user.picture = o.user.profile_image_url;
                     data.user.username = '@' + o.user.screen_name;
-                    data.text = linkify(o.text);
+                    if(emojione){
+                        data.text = emojione.toImage(linkify(o.text));
+                    } else {
+                        data.text = linkify(o.text);
+                    }
                     data.url = 'http://twitter.com/a/status/' + o.id_str;
                     data.comment = true;
                     if(o.entities !== undefined && o.entities.media !== undefined && o.entities.media[0].media_url){
@@ -848,22 +1038,25 @@ var pushposts = function(results){
                         }
                     }
                     data.actions = ['heart', 'retweet']
-                    $('#' + results.id + " .stream-content .stream-content-layer").append(projectpost(data, results.service, results.network_id));
+                    $('#' + results.id + " > .stream-content .stream-content-layer").append(projectpost(data, results.service, results.network_id));
                     $('#' + results.id).data('pageation_id', o.id_str);
                     if(i === (d.length - 1)){
-                        $('#' + results.id + " .stream-content .stream-content-layer").append('<div class="clear"></div>');
+                        $('#' + results.id + " > .stream-content .stream-content-layer").append('<div class="clear"></div>');
                         $('#' + results.id + " .stream-content").data('active', 'no');
                     }
                 };
             } else {
-                 $('#' + results.id + " .stream-content .stream-content-layer").html("<div class='error-something'>Something went wrong, you probably exceeded your rate limit. <br><br> This means that you're refreshing too much, wait around 5 minutes to see this feed again. <br><br> <b> Sorry ! </b></div>");
+                 $('#' + results.id + " > .stream-content .stream-content-layer").html("<div class='error-something'>Something went wrong, you probably exceeded your rate limit. <br><br> This means that you're refreshing too much, wait around 5 minutes to see this feed again. <br><br> <b> Sorry ! </b></div>");
             }
         break;
         case 'tumblr': 
             var d = {};
             
-            if(results.data.response){
+             
+            if(results.data.response && results.data.response.posts){
                 d = results.data.response.posts;
+            } else if(results.data.response){
+                d = results.data.response;
             } else {
                 d = results.data.posts;
             }
@@ -907,18 +1100,26 @@ var pushposts = function(results){
                 data.url = o.post_url;
                 data.comment = true;
                 data.actions = ['heart', 'retweet', 'back-in-time']
-                $('#' + results.id + " .stream-content .stream-content-layer").append(projectpost(data, results.service, results.network_id));
+                $('#' + results.id + " > .stream-content .stream-content-layer").append(projectpost(data, results.service, results.network_id));
                 $('#' + results.id).data('pageation_id', o.id_str);
                 
                 }
                 if(i === (d.length - 1)){
-                    $('#' + results.id + " .stream-content .stream-content-layer").append('<div class="clear"></div>');
-                    if($('#' + results.id).data('pageation_id')){
-                        $('#' + results.id).data('pageation_id', ($('#' + results.id).data('pageation_id') + 19));
+                    $('#' + results.id + " > .stream-content .stream-content-layer").append('<div class="clear"></div>');
+                   
+                    if(results.type !== 'search_feed'){
+                        
+                        if($('#' + results.id).data('pageation_id')){
+                            
+                            $('#' + results.id).data('pageation_id', ($('#' + results.id).data('pageation_id') + 19));
+                        } else {
+                            $('#' + results.id).data('pageation_id', 19)
+                        }
                     } else {
-                        $('#' + results.id).data('pageation_id', 19)
+                        $('#' + results.id).data('pageation_id', o.timestamp)
                     }
                     $('#' + results.id + " .stream-content").data('active', 'no');
+                    externalLinks();
                 }
             };
         break;
@@ -939,9 +1140,13 @@ var pushposts = function(results){
                 data.user.username = '@' +  o.user.full_name;
                 if(o.caption){
                     data.text = linkify(o.caption.text) || '';
+                    if(emojione){
+                        data.text = emojione.toImage(data.text);
+                    }
                 } else {
                     data.text = '';
                 }
+             
                 data.comment = false;
                 if(o.videos !== undefined && o.videos.standard_resolution !== undefined){
                    data.video =  o.videos.standard_resolution.url;
@@ -950,12 +1155,12 @@ var pushposts = function(results){
                 }
                 data.actions = ['heart']
                 
-                $('#' + results.id + " .stream-content .stream-content-layer").append(projectpost(data, results.service, results.network_id));
+                $('#' + results.id + " > .stream-content .stream-content-layer").append(projectpost(data, results.service, results.network_id));
                 $('#' + results.id).data('pageation_id', o.id);
                
 
                 if(i === (d.length - 1)){
-                    $('#' + results.id + " .stream-content .stream-content-layer").append('<div class="clear"></div>');
+                    $('#' + results.id + " > .stream-content .stream-content-layer").append('<div class="clear"></div>');
                     $('#' + results.id + " .stream-content").data('active', 'no');
                 }
             };
@@ -983,12 +1188,12 @@ var pushposts = function(results){
                 }
                 data.actions = ['']
                 
-                $('#' + results.id + " .stream-content .stream-content-layer").append(projectpost(data, results.service, results.network_id));
+                $('#' + results.id + " > .stream-content .stream-content-layer").append(projectpost(data, results.service, results.network_id));
                 
                
 
                 if(i === (d.length - 1)){
-                    $('#' + results.id + " .stream-content .stream-content-layer").append('<div class="clear"></div>');
+                    $('#' + results.id + " > .stream-content .stream-content-layer").append('<div class="clear"></div>');
                     if($('#' + results.id).data('pageation_id')){
                         $('#' + results.id).data('pageation_id', ($('#' + results.id).data('pageation_id') + 1));
                     } else {
@@ -1005,7 +1210,7 @@ var pushposts = function(results){
             for(var i = 0; i < d.length; i++){
                 
                 var o = d[i];
-               
+                    
                     var data = {};
                     data.user = {};
                     data.user.name = o.from.name;
@@ -1027,18 +1232,18 @@ var pushposts = function(results){
                         data.actions = ['']
                     }
                     
-
+                  
                     if(o.picture !== undefined ){
-                        data.embed = '<img style="width:130px" src="' + o.picture + '">';
+                        data.embed = '<img data-facebook="' + o.object_id + '" style="width:130px" src="' + o.picture + '">';
                     }
                     
 
-                    $('#' + results.id + " .stream-content .stream-content-layer").append(projectpost(data, results.service, results.network_id));
+                    $('#' + results.id + " > .stream-content .stream-content-layer").append(projectpost(data, results.service, results.network_id));
 
 
 
                     if(i === (d.length - 1)){
-                        $('#' + results.id + " .stream-content .stream-content-layer").append('<div class="clear"></div>');
+                        $('#' + results.id + " > .stream-content .stream-content-layer").append('<div class="clear"></div>');
                         $('#' + results.id).data('pageation_id', results.data.paging.next)
                         $('#' + results.id + " .stream-content").data('active', 'no');
                     }
@@ -1068,12 +1273,12 @@ var pushposts = function(results){
                 }
                 data.actions = ['heart']
                 
-                $('#' + results.id + " .stream-content .stream-content-layer").append(projectpost(data, results.service, results.network_id));
+                $('#' + results.id + " > .stream-content .stream-content-layer").append(projectpost(data, results.service, results.network_id));
                 
                
 
                 if(i === (d.length - 1)){
-                    $('#' + results.id + " .stream-content .stream-content-layer").append('<div class="clear"></div>');
+                    $('#' + results.id + " > .stream-content .stream-content-layer").append('<div class="clear"></div>');
                     if($('#' + results.id).data('pageation_id')){
                        $('#' + results.id).data('pageation_id', moment(moment($('#' + results.id).data('pageation_id'), 'YYYY-MM-DD').subtract(1, 'days')).format('YYYY-MM-DD'));
                     } else {
@@ -1126,13 +1331,14 @@ var pushposts = function(results){
 
                 data.actions = ['']
                 
-                $('#' + results.id + " .stream-content .stream-content-layer").append('<div class="redir" data-href="' + data.url + '">' + projectpost(data, results.service, results.network_id) + '</div>');
+                $('#' + results.id + " > .stream-content .stream-content-layer").append('<div class="redir" data-href="' + data.url + '">' + projectpost(data, results.service, results.network_id) + '</div>');
                 
                
 
                 if(i === (d.length - 1)){
-                    $('#' + results.id + " .stream-content .stream-content-layer").append('<div class="clear"></div>');
+                    $('#' + results.id + " > .stream-content .stream-content-layer").append('<div class="clear"></div>');
                     $('#' + results.id + " .stream-content").data('active', 'yes');
+                    externalLinks();
                 }
             };
         break;
@@ -1160,8 +1366,8 @@ var getposts = function(){
     }    
 }
 
-$(document).on('click', '.reset-stream', function(){
-    var id = $(this).data('id');
+var reset_stream = function(id){
+ 
     $.ajax({
         url: "/stream/collect",
         type: "POST",
@@ -1173,11 +1379,34 @@ $(document).on('click', '.reset-stream', function(){
         error: function(){
             error_node('There was an error <br><br> Please reload the page.');
         }
-    });
-    
+    });   
+}
+
+$(document).on('click', '.reset-stream', function(){
+    var id = $(this).data('id');
+    reset_stream(id);
 });
 
-
+var checkscroll = function(who){
+    $(who).scroll(function(){
+        if($(this).scrollTop() + $(this).height() > $(this).find('.stream-content-layer').height() - 200) {
+               if($(this).data('active') !== 'yes'){
+                    $(this).data('active', 'yes');
+                    $.ajax({
+                        url: "/stream/collect",
+                        type: "POST",
+                        data: {service:$(this).parent().data('service'), type:$(this).parent().data('type'), network_id:$(this).parent().data('network_id'), query:$(this).parent().data('query'), id:$(this).parent().data('id'), pageation_id:$(this).parent().data('pageation_id')},
+                        success: function(results){
+                            pushposts(results);
+                        },
+                        error: function(){
+                            error_node('There was an error <br><br> Please reload the page.');
+                        }
+                    });
+               }
+           }
+    });
+}
 
 
 $(document).ready(function(){
@@ -1212,36 +1441,18 @@ $(document).ready(function(){
        getposts();
      }, 250000);
 
-    $('.stream-content').scroll(function(){
+    $('.stream  > .stream-content').scroll(function(){
         clearInterval(refreshpage);
         refreshpage = setInterval(function(){
                getposts();
          }, 250000);
      });
     
-    $('.stream-content').scroll(function(){
-       if($(this).scrollTop() + $(this).height() > $(this).find('.stream-content-layer').height() - 100) {
-           if($(this).data('active') !== 'yes'){
-                $(this).data('active', 'yes');
-                $.ajax({
-                    url: "/stream/collect",
-                    type: "POST",
-                    data: {service:$(this).parent().data('service'), type:$(this).parent().data('type'), network_id:$(this).parent().data('network_id'), query:$(this).parent().data('query'), id:$(this).parent().data('id'), pageation_id:$(this).parent().data('pageation_id')},
-                    success: function(results){
-                        pushposts(results);
-                    },
-                    error: function(){
-                        error_node('There was an error <br><br> Please reload the page.');
-                    }
-                });
-           }
-       }
-    });
+    checkscroll('.stream  > .stream-content');
     
     
     
-    
-    
+  
 
     
     
@@ -1345,12 +1556,29 @@ $(document).mouseup(function (e){
 });
 
 
+
 //explode image
 $(document).on('click', '.post-content-image img, .post-content img', function(){
-    if($(this).parent('a').attr('href') !== undefined){
+    if($(this).data('facebook')){
+        
+        $.ajax({
+            url: "https://graph.facebook.com/"+$(this).data('facebook')+"?fields=images.source",
+            type: "GET",
+            success: function(results){
+                $('.exploded-image-container').animate({opacity:'show'});
+                $('.exploded-image').attr('src', results.images[0].source);
+            },
+            error: function(){
+                error_node('There was an error <br><br> Please reload the page.');
+            }
+        });
+        
     } else {
-        $('.exploded-image-container').animate({opacity:'show'});
-        $('.exploded-image').attr('src', $(this).attr('src'));
+        if($(this).parent('a').attr('href') !== undefined){
+        } else {
+            $('.exploded-image-container').animate({opacity:'show'});
+            $('.exploded-image').attr('src', $(this).attr('src'));
+        }
     }
 });
 

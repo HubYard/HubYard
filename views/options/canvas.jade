@@ -7,5 +7,31 @@
                 .settings-block-input-name Name
                 input.settings-block-input.update_canvas_name(type='name' value= canvases[i].name)
             .overlay-block-option
-                .button-line.overlay-block-button.save-current-canvas.half-button(data-id= canvases[i].id) Save
-                .button-line.overlay-block-button.delete-current-canvas.half-button(data-id= canvases[i].id) Delete
+                .button-line.overlay-block-button.save-current-canvas.half-button(style='margin-bottom:0px' data-id= canvases[i].id) Save
+                .button-line.overlay-block-button.delete-current-canvas.half-button(style='margin-bottom:0px' data-id= canvases[i].id) Delete
+            .clear
+        .overlay-header(style='border-top:1px solid rgba(0,0,0,.1)') Member Info
+        .overlay-content
+            .overlay-block-option
+                .settings-block-input-name Members
+                .settings-block
+                    .error-block You did something wrong!
+                    -for(var x = 0; x < canvases[i].members.length; x++){
+                        -if(canvases[i].members[x] !== udata.id){
+                            .member-block(data-id=canvases[i].id)
+                                .member-text= canvases[i].member_emails[x]
+                                -if(canvases[i].owner_id === udata.id){
+                                    .member-remove(data-id=canvases[i].members[x]) x
+                                -}
+                                .clear
+                        -} else {
+                            .member-block
+                                .member-text You (!{canvases[i].member_emails[x]})
+                                .clear
+                        -}
+                    -}
+                -if(canvases[i].owner_id === udata.id && udata.user_status !== 'enthusiast'){
+                    .settings-block-input-name Add a New Member
+                        input.add-new-member(data-id=canvases[i].id  placeholder='Enter an email of your coworker')
+                -}
+            

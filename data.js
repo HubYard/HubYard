@@ -68,9 +68,27 @@ var rank_check = function(rank, sent, action){
             return false;
         } else if(action === 'RSS' && sent <= 25){ 
            return true;
-        } else if(action === 'canvasmembers' && sent > 2){ 
+        } else if(action === 'canvasmembers' && sent > 4){ 
             return false;
-        } else if(action === 'canvasmembers' && sent <= 2){ 
+        } else if(action === 'canvasmembers' && sent <= 4){ 
+           return true;
+        } 
+    } else if(rank === 'awesomebetamonthly' || rank === 'awesomebetayearly'){
+        if(action === 'network' && sent > 11){ 
+            return false;
+        } else if(action === 'network' && sent <= 11){ 
+           return true;
+        } else if(action === 'canvas' && sent > 4){ 
+           return false;
+        } else if(action === 'canvas' && sent <= 4){ 
+           return true;
+        } else if(action === 'RSS' && sent > 14){ 
+            return false;
+        } else if(action === 'RSS' && sent <= 14){ 
+           return true;
+        } else if(action === 'canvasmembers' && sent > 1){ 
+            return false;
+        } else if(action === 'canvasmembers' && sent <= 1){ 
            return true;
         } 
     }
@@ -213,44 +231,38 @@ module.exports = function(app) {
 		var newData = {};
 		if(email != undefined && email != null && email != '' && name != '' && name != undefined && pass != null && pass != undefined && pass != ''){
 			if(validateEmail(email) != false){
-				emails.findOne({email:email}, function(e, o) {
-					if (o){
-						accounts.findOne({email:email}, function(e, o) {
-							if (o){
-								res.send('Email in use, check if you already made an account with us.');
-							}	else{
-							
-								saltAndHash(pass, function(hash){
-									newData.email = email;
-									newData.pass = hash;
-									newData.name = name;
-									newData.id = crypto.randomBytes(4).toString('hex') + '_' + crypto.randomBytes(8).toString('hex') + '_' + crypto.randomBytes(4).toString('hex')  + '_' + crypto.randomBytes(16).toString('hex')
-								// append date stamp when record was created //
-									newData.creationdate = moment().format('MMMM Do YYYY, h:mm:ss a');
-									
-								// Setup account
-									newData.user_rank = 'alpha';
-									newData.user_status = 'enthusiast';
-                                    newData.options = {}
-                                    newData.payment = {}
-                                    newData.payment.subscription = '';
-                                    newData.payment.last4oncard = '';
-                                    newData.options.canvas = 0;
-									
-									accounts.insert(newData, {safe: true}, function(){
-                                        welcometo(newData, function(){
-                                            console.log('sent');  
-                                        })
-										req.session.user = newData;
-										res.send(200);
-									});
-								});
-							}
-						});
-					}	else{
-						res.send('Your email is not whitelisted, sign up for our <a href="http://hubyard.com/">newsletter</a> for a chance to get in :)');
-					}
-				});
+                    accounts.findOne({email:email}, function(e, o) {
+                        if (o){
+                            res.send('Email in use, check if you already made an account with us.');
+                        }	else{
+
+                            saltAndHash(pass, function(hash){
+                                newData.email = email;
+                                newData.pass = hash;
+                                newData.name = name;
+                                newData.id = crypto.randomBytes(4).toString('hex') + '_' + crypto.randomBytes(8).toString('hex') + '_' + crypto.randomBytes(4).toString('hex')  + '_' + crypto.randomBytes(16).toString('hex')
+                            // append date stamp when record was created //
+                                newData.creationdate = moment().format('MMMM Do YYYY, h:mm:ss a');
+
+                            // Setup account
+                                newData.user_rank = 'alpha';
+                                newData.user_status = 'enthusiast';
+                                newData.options = {}
+                                newData.payment = {}
+                                newData.payment.subscription = '';
+                                newData.payment.last4oncard = '';
+                                newData.options.canvas = 0;
+
+                                accounts.insert(newData, {safe: true}, function(){
+                                    welcometo(newData, function(){
+                                        console.log('sent');  
+                                    })
+                                    req.session.user = newData;
+                                    res.send(200);
+                                });
+                            });
+                        }
+                    });
 			} else {
 				res.send('Please enter a valid email.');
 			}
@@ -605,7 +617,7 @@ module.exports = function(app) {
                                     canvases.save(o, {safe: true}, function(){
                                         accounts.save(x, {safe: true}, function(){
                                             req.session.user = x;
-                                            res.send(200);
+                                            res.send(o.streams[position]);
                                         });
                                     });
                                 } else {
@@ -619,7 +631,7 @@ module.exports = function(app) {
                     } else {
                         
                         canvases.save(o, {safe: true}, function(){
-                            res.send(200);
+                            res.send(o.streams[position]);
                         });
                         
                     }
@@ -838,7 +850,7 @@ module.exports = function(app) {
                                     break;
                                     case 'user_search_feed': 
                                         if(pageation_id){
-                                            link = 'http://api.tumblr.com/v2/blog/' + query + '.tumblr.com/posts/queue?notes_info=true&offset=' + pageation_id;
+                                            link = 'http://api.tumblr.com/v2/blog/' + query + '.tumblr.com/posts/queue?notes_info=true&offset=' + pageation_id +'&api_key=' + keys.tumblrconsume
                                         } else {
                                             link = 'http://api.tumblr.com/v2/blog/' + query + '.tumblr.com/posts/queue?api_key=' + keys.tumblrconsume;
 
@@ -846,16 +858,16 @@ module.exports = function(app) {
                                     break;
                                     case 'search_feed': 
                                         if(pageation_id){
-                                           link = 'http://api.tumblr.com/v2/tagged?tag=' + query + '&before=' + pageation_id;
+                                           link = 'http://api.tumblr.com/v2/tagged?tag=' + query + '&before=' + pageation_id +'&api_key=' + keys.tumblrconsume;
                                         } else {
-                                           link = 'http://api.tumblr.com/v2/tagged?tag=' + query +'?api_key=' + keys.tumblrconsume;
+                                           link = 'http://api.tumblr.com/v2/tagged?tag=' + query +'&api_key=' + keys.tumblrconsume;
                                         }
                                     break;
                                 }
                                 console.log(link)
                                 oauth_1_request(link, authorization, 'get', function(results){
 
-                                    res.send({data:results, id:req.param('id'), service:service, network_id:req.param('network_id')});
+                                    res.send({data:results, type:type, id:req.param('id'), service:service, network_id:req.param('network_id')});
                                 });
 
                                 break;
@@ -985,14 +997,15 @@ module.exports = function(app) {
     
     //get details
     app.post('/post/details', function(req, res){
-        if(req.session.user){
+        if(req.session.user && req.param('stream_id') && req.param('type') && req.param('user_id')){
             networks.findOne({id:req.param('network_id') }, function(e, o) {
                 if(o){
                     var authorization = {};
                     var id = req.param('user_id');
                     var type = req.param('type');
                     var service = o.service;
-                    
+                    var network_id = req.param('network_id');
+                    var stream_id = req.param('stream_id');
                     switch(service) {
                         case 'twitter': 
                             
@@ -1011,9 +1024,43 @@ module.exports = function(app) {
                                 break;
                             }
                             oauth_1_request(link, authorization, 'get', function(results){
-                                res.send({service:service, data:results});
+                                res.send({service:service, data:results, stream_id:stream_id, network_id:network_id});
                             });
                             
+                            break;
+                            case 'facebook page': 
+                                var link = '';
+                                var header = o.auth.token;
+                                switch(type) {
+                                    case 'user': 
+                                        link = 'https://graph.facebook.com/v2.2/' + id + '?access_token=' + header
+                                    break; 
+                                }
+                                generic_request(link, {}, 'GET', function(o){
+                                    res.send({data:o, id:req.param('id'), service:service, network_id:req.param('network_id'), stream_id:stream_id, network_id:network_id});
+                                });
+                            break;  
+                        case 'tumblr': 
+                            authorization = {
+                                    request_token_url:'http://www.tumblr.com/oauth/request_token',
+                                    access_token_url:'http://www.tumblr.com/oauth/access_token',
+                                    consumer_key:keys.tumblrconsume,
+                                    consumer_key_secret:keys.tumblrconsume_secret,
+                                    token:o.auth.token,
+                                    token_secret:o.auth.token_secret
+                                }
+
+                                var link = '';
+
+                                switch(type) {
+                                    case 'user': 
+                                           link = 'http://api.tumblr.com/v2/blog/' + id + '/info?api_key=' + keys.tumblrconsume;
+                                    break;
+                                }
+                                oauth_1_request(link, authorization, 'get', function(results){
+
+                                    res.send({data:results, type:type, id:req.param('id'), service:service, network_id:req.param('network_id'), stream_id:stream_id, network_id:network_id});
+                                });
                             break;
                         case 'instagram':
                             auth = 'access_token=' + o.auth.token;
@@ -1025,7 +1072,7 @@ module.exports = function(app) {
                                 break;
                             }
                             generic_request(link, {}, 'GET', function(results){
-                                res.send({service:service, data:results.data});
+                                res.send({service:service, data:results.data, stream_id:stream_id, network_id:network_id});
                             });
                             break;
                         case 'product hunt':
@@ -1038,7 +1085,7 @@ module.exports = function(app) {
                                 break;
                             }
                             generic_request(link, header, 'GET', function(results){
-                                res.send({service:service, data:results.user});
+                                res.send({service:service, data:results.user, stream_id:stream_id, network_id:network_id});
                             });
                             break;
                         case 'dribbble':
@@ -1052,7 +1099,7 @@ module.exports = function(app) {
                                 break;
                             }
                             generic_request(link, header, 'GET', function(results){
-                                res.send({service:service, data:results});
+                                res.send({service:service, data:results, stream_id:stream_id, network_id:network_id});
                             });
                             break;
                     }
@@ -1820,106 +1867,111 @@ module.exports = function(app) {
     
     var order = function(req, res){
         var type = req.param('type');
-        if(req.session.user.payment.id){
-           if(type === 'enthusiast'){
-                if(req.session.user.payment.subscription){
-                    accounts.findOne({id:req.session.user.id}, function(e, o) {
-                        if(o){
-                            stripe.customers.cancelSubscription(
-                              o.payment.id,
-                              o.payment.subscription,
-                              function(err, confirmation) {
-                                if(err){
-                                    o.payment.subscription = undefined;
-                                    o.user_status = type;
-                                    canvases.remove({owner_id:req.session.user.id}, function() {
-                                        networks.remove({member_id:req.session.user.id}, function() {
-                                            accounts.save(o, {safe: true}, function(){
-                                                req.session.user = o;
-                                                res.send(200);
+        if(type && req.session.user){
+            
+            if(req.session.user.payment.id){
+               if(type === 'enthusiast'){
+                    if(req.session.user.payment.subscription){
+                        accounts.findOne({id:req.session.user.id}, function(e, o) {
+                            if(o){
+                                stripe.customers.cancelSubscription(
+                                  o.payment.id,
+                                  o.payment.subscription,
+                                  function(err, confirmation) {
+                                    if(err){
+                                        o.payment.subscription = undefined;
+                                        o.user_status = type;
+                                        canvases.remove({owner_id:req.session.user.id}, function() {
+                                            networks.remove({member_id:req.session.user.id}, function() {
+                                                accounts.save(o, {safe: true}, function(){
+                                                    req.session.user = o;
+                                                    res.send(200);
+                                                });
                                             });
                                         });
-                                    });
-                                } else {
-                                    o.payment.id = confirmation.customer;
-                                    o.payment.subscription = undefined;
-                                    o.user_status = type;
-                                    canvases.remove({owner_id:req.session.user.id}, function() {
-                                        networks.remove({member_id:req.session.user.id}, function() {
-                                            accounts.save(o, {safe: true}, function(){
-                                                req.session.user = o;
-                                                res.send(200);
+                                    } else {
+                                        o.payment.id = confirmation.customer;
+                                        o.payment.subscription = undefined;
+                                        o.user_status = type;
+                                        canvases.remove({owner_id:req.session.user.id}, function() {
+                                            networks.remove({member_id:req.session.user.id}, function() {
+                                                accounts.save(o, {safe: true}, function(){
+                                                    req.session.user = o;
+                                                    res.send(200);
+                                                });
                                             });
                                         });
-                                    });
-                                    
-                                }
-                              }
-                            );
+
+                                    }
+                                  }
+                                );
+                            } else {
+                                res.send(404);   
+                            }
+                        });
+                    } else {
+                        res.send(200);   
+                    }
+               } else {
+                   accounts.findOne({id:req.session.user.id}, function(e, o) {
+                       if(o){
+                           if(o.payment.subscription) {
+                               stripe.customers.updateSubscription(
+                                  o.payment.id,
+                                  o.payment.subscription,
+                                  { plan: type },
+                                  function(err, subscription) {
+                                    if(err){
+                                        console.log(err);
+                                        res.send(400);
+                                    } else {
+                                        o.user_status = type;
+                                        o.payment.subscription = subscription.id;
+                                        accounts.save(o, {safe: true}, function(err) {	
+                                            if(err){
+                                                res.send(400);
+                                            } else {
+                                                req.session.user = o
+                                                res.send(200);
+                                            }
+                                        });	
+                                    }
+                                  }
+                                );
+                           } else {
+                               stripe.customers.createSubscription(
+                                  o.payment.id,
+                                  {plan: type, card: req.param('card')},
+                                  function(err, subscription) {
+                                    if(err){
+                                        console.log(err);
+                                        res.send(400);
+                                    } else {
+                                        o.user_status = type;
+                                        o.payment.subscription = subscription.id;
+                                        accounts.save(o, {safe: true}, function(err) {	
+                                            if(err){
+                                                res.send(400);
+                                            } else {
+                                                req.session.user = o
+                                                res.send(200);
+                                            }
+                                        });	
+                                    }
+                                  }
+                                );
+                           }
                         } else {
                             res.send(404);   
                         }
-                    });
-                } else {
-                    res.send(200);   
-                }
-           } else {
-               accounts.findOne({id:req.session.user.id}, function(e, o) {
-                   if(o){
-                       if(o.payment.subscription) {
-                           stripe.customers.updateSubscription(
-                              o.payment.id,
-                              o.payment.subscription,
-                              { plan: type },
-                              function(err, subscription) {
-                                if(err){
-                                    console.log(err);
-                                    res.send(400);
-                                } else {
-                                    o.user_status = type;
-                                    o.payment.subscription = subscription.id;
-                                    accounts.save(o, {safe: true}, function(err) {	
-                                        if(err){
-                                            res.send(400);
-                                        } else {
-                                            req.session.user = o
-                                            res.send(200);
-                                        }
-                                    });	
-                                }
-                              }
-                            );
-                       } else {
-                           stripe.customers.createSubscription(
-                              o.payment.id,
-                              {plan: type, card: req.param('card')},
-                              function(err, subscription) {
-                                if(err){
-                                    console.log(err);
-                                    res.send(400);
-                                } else {
-                                    o.user_status = type;
-                                    o.payment.subscription = subscription.id;
-                                    accounts.save(o, {safe: true}, function(err) {	
-                                        if(err){
-                                            res.send(400);
-                                        } else {
-                                            req.session.user = o
-                                            res.send(200);
-                                        }
-                                    });	
-                                }
-                              }
-                            );
-                       }
-                    } else {
-                        res.send(404);   
-                    }
-               });
-           }
+                   });
+               }
+            } else {
+                res.send(406);   
+            }  
         } else {
-            res.send(406);   
-        }    
+            res.send(400);   
+        }
     }
     
     
@@ -1983,26 +2035,34 @@ module.exports = function(app) {
                             );
                       }
                   } else {
-                      stripe.customers.create({
-                          email: o.email,
-                          card: req.param('card')
-                        }, function(err, customer) {
-                            if(err){
-                                console.log(err);
-                                res.send(400);
-                            } else {
-                                    o.payment.id = customer.id;
-                                    o.payment.default_card = customer.default_card;
-                                    o.payment.last4oncard = req.param('last4oncard');
-                                    accounts.save(o, {safe: true}, function(err) {	
-                                        if(err){
-                                            res.send(400);
-                                        } else {
-                                            order(req, res);
-                                        }
-                                    });	
-                            }
-                        }); 
+                      if(validateEmail(req.session.user.email) === true){
+                          stripe.customers.create({
+                              email: o.email,
+                              card: req.param('card')
+                            }, function(err, customer) {
+                                if(err){
+                                    console.log(err);
+                                    res.send(400);
+                                } else {
+                                        o.payment.id = customer.id;
+                                        o.payment.default_card = customer.default_card;
+                                        o.payment.last4oncard = req.param('last4oncard');
+                                        accounts.save(o, {safe: true}, function(err) {	
+                                            if(err){
+                                                res.send(400);
+                                            } else {
+                                                if(req.param('type')){
+                                                    order(req, res);
+                                                } else {
+                                                    res.send(200);   
+                                                }
+                                            }
+                                        });	
+                                }
+                            }); 
+                      } else {
+                        res.send(400);   
+                      }
                   }
             } else {
                 res.send(404);   
@@ -2041,25 +2101,59 @@ module.exports = function(app) {
      
     app.post('/delete/account', function(req, res) {
 		if(req.session.user){
-            accounts.remove({id:req.session.user.id}, function(){
-                req.session.destroy()
-                res.send(200);
-            });
+            if(req.session.user.payment.id){
+                stripe.customers.del(
+                    req.session.user.payment.id,
+                    function(err, confirmation) {
+                        if(err){
+                            res.send(400);
+                        } else {
+                            networks.remove({'member_id':req.session.user.id}, function(){
+                                canvases.remove({'owner_id':req.session.user.id}, function(){
+                                    accounts.remove({id:req.session.user.id}, function(){
+                                        req.session.destroy()
+                                        res.send(200);
+                                    }); 
+                                });
+                            });
+                        }
+                    }
+                );
+            } else {
+                networks.remove({'member_id':req.session.user.id}, function(){
+                    canvases.remove({'owner_id':req.session.user.id}, function(){
+                        accounts.remove({id:req.session.user.id}, function(){
+                            req.session.destroy()
+                            res.send(200);
+                        }); 
+                    });
+                });
+            }
         }
 	});
     
 	app.get('/reset-password', function(req, res) {
-		var email = req.query["e"];
-		var passH = req.query["p"];
-		accounts.find({ $and: [{email:email.toLowerCase(), pass:passH}] }, function(e, o){
-			if (o){
-				req.session.reset = { email:email, passHash:passH };
-				res.render('reset');
-			} else{
-	           // save the user's email in a session instead of sending to the client //
-				res.redirect('/');
-			}
-		})
+        if(req.query){
+            var email = req.query["e"];
+            var passH = req.query["p"];
+            if(email && passH){
+                accounts.find({email:email.toLowerCase(), pass:passH}, function(e, o){
+                    if (o){
+                        req.session.reset = { email:email, passHash:passH };
+                        res.render('reset');
+                    } else{
+                       // save the user's email in a session instead of sending to the client //
+                        res.redirect('/');
+                    }
+                })
+            } else{
+               // save the user's email in a session instead of sending to the client //
+                res.redirect('/');
+            }
+        } else{
+           // save the user's email in a session instead of sending to the client //
+            res.redirect('/');
+        }
 	});
 	
 	app.post('/reset-password', function(req, res) {
