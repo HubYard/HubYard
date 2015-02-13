@@ -430,7 +430,7 @@ module.exports = function(app) {
                 }
             });
         } else {
-            res.send(406);   
+            res.send(400);   
         }
 	});
     
@@ -468,7 +468,7 @@ module.exports = function(app) {
                 res.send('You did not enter a valid email');
             }
         } else {
-            res.send(406);   
+            res.send(400);   
         }
 	});
     
@@ -493,7 +493,7 @@ module.exports = function(app) {
                 }   
             });
         } else {
-            res.send(406);   
+            res.send(400);   
         }
 	});
     
@@ -514,7 +514,7 @@ module.exports = function(app) {
             });
             
         } else {
-            res.send(406);   
+            res.send(400);   
         }
 	});
     
@@ -546,7 +546,7 @@ module.exports = function(app) {
                 }
             });
         } else {
-            res.send(406);   
+            res.send(400);   
         }
 	});
     
@@ -564,7 +564,7 @@ module.exports = function(app) {
                 }
             });
         } else {
-            res.send(406);   
+            res.send(400);   
         }
 	});
     
@@ -640,7 +640,7 @@ module.exports = function(app) {
                 }
             });
         } else {
-            res.send(406);   
+            res.send(400);   
         }
     });
 
@@ -661,7 +661,7 @@ module.exports = function(app) {
                 }
             });
         } else {
-            res.send(406);   
+            res.send(400);   
         }
     });
     
@@ -681,7 +681,7 @@ module.exports = function(app) {
                 }
             });
         } else {
-            res.send(406);   
+            res.send(400);   
         }
     });
     
@@ -732,7 +732,7 @@ module.exports = function(app) {
                 }
             });
         } else {
-            res.send(406);   
+            res.send(400);   
         }
     });
 
@@ -988,7 +988,7 @@ module.exports = function(app) {
                 })
             }
         } else {
-            res.send(406);   
+            res.send(400);   
         }
     });
     
@@ -1109,7 +1109,7 @@ module.exports = function(app) {
                 }
             })
         } else {
-            res.send(406);   
+            res.send(400);   
         }
     });
     
@@ -1279,7 +1279,7 @@ module.exports = function(app) {
                 }
             })
         } else {
-            res.send(406);   
+            res.send(400);   
         }
     });
     
@@ -1289,7 +1289,7 @@ module.exports = function(app) {
                 res.send(200);
             });
         } else {
-            res.send(406);   
+            res.send(400);   
         }
 	});
     
@@ -1967,7 +1967,7 @@ module.exports = function(app) {
                    });
                }
             } else {
-                res.send(406);   
+                res.send(400);   
             }  
         } else {
             res.send(400);   

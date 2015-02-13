@@ -52,6 +52,10 @@ Run and Enjoy (runs on localhost:4002)
 ```
 node app.js
 ```
+
+### FYI: Not all of HubYard's code is Open Source
+Why? Because it's sadly (not our) proprietary software. Things such as Google Analytics, Olark, and DataStack integrations are removed from the github release. This means that source releases may take longer to appear than when it updates on the website. Don't fret though. You don't need that software to be awesome and run this platform!
+
 ### License
 
 Copyright (c) 2013-2015 HubYard
@@ -76,5 +80,3 @@ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
-
-
