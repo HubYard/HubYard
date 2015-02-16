@@ -36,6 +36,8 @@ var MongoDB 	= require('mongodb').Db;
 var Server 		= require('mongodb').Server;
 var mongojs = require('mongojs');
 var keys = require('./keys');
+var multipart = require('connect-multiparty');
+var multipartMiddleware = multipart();
 
 
 var rank_check = function(rank, sent, action){
@@ -102,7 +104,7 @@ module.exports = function(app) {
     //request pages
 	app.get('/', function(req, res) {
 		if (req.cookies.user == undefined || req.cookies.pass == undefined){
-			res.render('home', {useheader:true});
+			res.render('home', {useheader:true, producthunt:req.param('producthunt')});
 		}	else{
 	// attempt automatic login //
 			autoLogin(req.cookies.user, req.cookies.pass, function(o){
@@ -335,6 +337,36 @@ module.exports = function(app) {
 		}
 	});
     
+    app.post('/email/add', function(req, res) {
+		if(req.session.user != undefined){
+            var email = htmlEscape(req.param('email')).toLowerCase();
+            accounts.findOne({id:req.session.user.id}, function(e, o) {
+                accounts.findOne({email:email}, function(z, x) {
+                    console.log(x);
+                    if(req.session.user.email === email || x === null){
+                        if(o){
+                            o.email = email;
+                            accounts.save(o, {safe: true}, function(err) {	
+                                if(err){
+                                    res.send(400);
+                                } else {
+                                    req.session.user = o;
+                                    res.send(200)
+                                }
+                            });	
+                        } else {
+                            res.send(400);
+                        }
+                    } else {
+                        res.send('This email is in use!', 400);  
+                    }
+			});
+            });
+		} else {
+			res.redirect(400);
+		}
+	});
+    
     //settings
     app.post('/settings/user', function(req, res) {
 		if(req.session.user != undefined){
@@ -342,42 +374,48 @@ module.exports = function(app) {
             var pass = htmlEscape(req.param('pass'));
             var name = htmlEscape(req.param('name'));
             accounts.findOne({id:req.session.user.id}, function(e, o) {
-                if(o){
-                    if(pass){
-                        if(pass.length >= 5){
-                            saltAndHash(pass, function(hash){
-                                o.pass = hash;
+                accounts.findOne({email:email}, function(z, x) {
+                    if(req.session.user.email === email || x === null){
+                        if(o){
+                            if(pass){
+                                if(pass.length >= 5){
+                                    saltAndHash(pass, function(hash){
+                                        o.pass = hash;
+                                        o.name = name;
+                                        o.email = email;
+                                        accounts.save(o, {safe: true}, function(err) {	
+                                            if(err){
+                                                res.send(400);
+                                            } else {
+                                                res.send(200)
+                                            }
+                                        });	
+                                    });
+                                } else {
+                                    res.send('Your password is too short (Needs to be 5 or longer)', 400);   
+                                }
+                            } else {
                                 o.name = name;
                                 o.email = email;
                                 accounts.save(o, {safe: true}, function(err) {	
                                     if(err){
                                         res.send(400);
                                     } else {
+                                        req.session.user = o;
                                         res.send(200)
                                     }
                                 });	
-                            });
+                            }
                         } else {
-                            res.send('Your password is too short (Needs to be 5 or longer)');   
+                            res.send(400);
                         }
                     } else {
-                        o.name = name;
-                        o.email = email;
-                        accounts.save(o, {safe: true}, function(err) {	
-                            if(err){
-                                res.send(400);
-                            } else {
-                                req.session.user = o;
-                                res.send(200)
-                            }
-                        });	
+                        res.send('This email is in use!', 400);   
                     }
-                } else {
-                    res.send(400);
-                }
+                });
 			});
 		} else {
-			res.redirect('/login');
+			res.redirect(400);
 		}
 	});
     
@@ -430,7 +468,7 @@ module.exports = function(app) {
                 }
             });
         } else {
-            res.send(400);   
+            res.send(404);   
         }
 	});
     
@@ -468,7 +506,7 @@ module.exports = function(app) {
                 res.send('You did not enter a valid email');
             }
         } else {
-            res.send(400);   
+            res.send(404);   
         }
 	});
     
@@ -493,7 +531,7 @@ module.exports = function(app) {
                 }   
             });
         } else {
-            res.send(400);   
+            res.send(404);   
         }
 	});
     
@@ -514,7 +552,7 @@ module.exports = function(app) {
             });
             
         } else {
-            res.send(400);   
+            res.send(404);   
         }
 	});
     
@@ -546,7 +584,7 @@ module.exports = function(app) {
                 }
             });
         } else {
-            res.send(400);   
+            res.send(404);   
         }
 	});
     
@@ -564,7 +602,7 @@ module.exports = function(app) {
                 }
             });
         } else {
-            res.send(400);   
+            res.send(404);   
         }
 	});
     
@@ -640,7 +678,7 @@ module.exports = function(app) {
                 }
             });
         } else {
-            res.send(400);   
+            res.send(404);   
         }
     });
 
@@ -661,7 +699,7 @@ module.exports = function(app) {
                 }
             });
         } else {
-            res.send(400);   
+            res.send(404);   
         }
     });
     
@@ -681,7 +719,7 @@ module.exports = function(app) {
                 }
             });
         } else {
-            res.send(400);   
+            res.send(404);   
         }
     });
     
@@ -732,7 +770,7 @@ module.exports = function(app) {
                 }
             });
         } else {
-            res.send(400);   
+            res.send(404);   
         }
     });
 
@@ -988,7 +1026,7 @@ module.exports = function(app) {
                 })
             }
         } else {
-            res.send(400);   
+            res.send(404);   
         }
     });
     
@@ -1022,6 +1060,9 @@ module.exports = function(app) {
                                 case 'user': 
                                     link = 'https://api.twitter.com/1.1/users/show.json?user_id=' + id;
                                 break;
+                                case 'user_name': 
+                                    link = 'https://api.twitter.com/1.1/users/show.json?screen_name=' + id;
+                                break;
                             }
                             oauth_1_request(link, authorization, 'get', function(results){
                                 res.send({service:service, data:results, stream_id:stream_id, network_id:network_id});
@@ -1034,6 +1075,9 @@ module.exports = function(app) {
                                 switch(type) {
                                     case 'user': 
                                         link = 'https://graph.facebook.com/v2.2/' + id + '?access_token=' + header
+                                    break; 
+                                    case 'comments': 
+                                        link = 'https://graph.facebook.com/v2.2/' + id + '/comments?fields=comments{comments,from,message},from,message&access_token=' + header
                                     break; 
                                 }
                                 generic_request(link, {}, 'GET', function(o){
@@ -1109,7 +1153,7 @@ module.exports = function(app) {
                 }
             })
         } else {
-            res.send(400);   
+            res.send(404);   
         }
     });
     
@@ -1119,6 +1163,7 @@ module.exports = function(app) {
         if(req.session.user){
             networks.findOne({id:req.param('network_id') }, function(e, o) {
                 if(o){
+                    var network_id = req.param('network_id');
                     var authorization = {};
                     var id = req.param('post_id');
                     var id_m = req.param('post_id_additional');
@@ -1248,8 +1293,8 @@ module.exports = function(app) {
                                     method = 'POST'
                                 break;
                             }
-                            generic_request(link, {}, method, function(o){
-                                res.send({type:retype});
+                            generic_request(link, {}, method, function(x){
+                                res.send({type:retype, network_id:network_id, service:service, user_id:id, stream_id:id_m});
                             });
                             break;
                         case 'dribbble':
@@ -1279,7 +1324,7 @@ module.exports = function(app) {
                 }
             })
         } else {
-            res.send(400);   
+            res.send(404);   
         }
     });
     
@@ -1289,7 +1334,7 @@ module.exports = function(app) {
                 res.send(200);
             });
         } else {
-            res.send(400);   
+            res.send(404);   
         }
 	});
     
@@ -1523,7 +1568,7 @@ module.exports = function(app) {
                                                 accounts.insert(newData, {safe: true}, function(){
                                                     req.session.user = newData
                                                     saveNetwork(req, res, null, auth, user, service);
-                                                    ;
+
                                                 });
                                             });
                                         }
@@ -1967,7 +2012,7 @@ module.exports = function(app) {
                    });
                }
             } else {
-                res.send(400);   
+                res.send(404);   
             }  
         } else {
             res.send(400);   
@@ -2097,6 +2142,111 @@ module.exports = function(app) {
             res.send(400);
         }
 	});
+    
+        /*
+        
+            */
+    
+        app.post('/post', multipartMiddleware, function(req, res){
+            if(req.session.user ){
+                if(req.body.post_location_count && req.body.post_text){
+                    for(var i = 0; i < req.body.post_location_count; i++){
+                        networks.findOne({id:req.body['network_' + i] }, function(e, o) {
+                            if(o){
+                                var network_id = req.body['network_' + i];
+                                var type = 'normal'
+                                
+                                if(req.files.image && req.files.image.originalFilename !== ''){
+                                    type = 'image';
+                                } 
+
+                                var text = req.body.post_text || ' ';
+                                var service = o.service;
+                                switch(service) {
+                                    case 'twitter': 
+                                         authorization = {
+                                            request_token_url:'https://api.twitter.com/oauth/request_token',
+                                            access_token_url:'https://api.twitter.com/oauth/access_token',
+                                            consumer_key:keys.twitterconsume,
+                                            consumer_key_secret:keys.twitterconsume_secret,
+                                            token:o.auth.token,
+                                            token_secret:o.auth.token_secret
+                                        }
+                                        var link = '';
+                                        var retype = '';
+                                        switch(type) {
+                                            case 'normal': 
+                                                link = 'https://api.twitter.com/1.1/statuses/update.json';
+                                                oauth_1_request(link, authorization, 'post', function(results){
+                                                   //console.log(results);
+                                                }, {status:text});
+                                            break;
+                                            case 'image': 
+                                                fs.readFile(req.files.image.path, function (err, image) {
+                                                    var image = image.toString('base64');
+
+                                                    link = 'https://upload.twitter.com/1.1/media/upload.json';
+                                                    oauth_1_request(link, authorization, 'post', function(results){
+                                                       if(results && results.media_id_string){
+                                                           console.log(text);
+                                                            link = 'https://api.twitter.com/1.1/statuses/update.json';
+                                                           console.log(authorization);
+                                                            oauth_1_request(link, authorization, 'post', function(results){
+                                                               //console.log(results);
+                                                            }, {status:text, media_ids:results.media_id_string});
+                                                       } else {
+                                                            console.log('what');   
+                                                       }
+                                                    },{media:image});
+                                                });
+                                            break;
+                                        }
+                                        break;
+                                    case 'facebook page': 
+                                        var auth = 'access_token=' + o.auth.token;
+                                        var link = '';
+                                        var retype = '';
+                                        switch(type) {
+                                            case 'normal': 
+                                                link = 'https://graph.facebook.com/v2.2/' + o.user.id + '/feed?' + auth;
+                                                generic_request(link, {}, 'post', function(results){
+                                                    //
+                                                }, {message:text}, true);
+                                            break;
+                                            case 'image': 
+                                                link = 'https://graph.facebook.com/v2.2/' + o.user.id + '/photos?' + auth;
+                                                generic_request(link, {}, 'post', function(results){
+                                                    //
+                                                }, null, null, {message:text, source:fs.createReadStream(req.files.image.path)});
+                                            break;
+                                        }
+                                        break;                                    
+                                }
+                            } else {
+                                console.log('what');   
+                            }
+                        });
+                    }
+                    if(i >= (parseFloat(req.body.post_location_count) - 1)){
+				        res.redirect('/app');
+					}
+                } else {
+                    res.redirect('/app');
+                }
+            } else {
+                res.redirect('/');
+            }
+        });
+    
+    /*fs.readFile(req.files.image.path, function (err, image) {
+                            var data = {};
+                            data.image = image;
+                            data.message = req.param('holder')
+                            data.accesstoken = req.session.user.networks[req.param('id_' + k)].oauth[0];
+                            data.accesstokensecret = req.session.user.networks[req.param('id_' + k)].oauth[1];
+                            twitter_image_upload(data, res);
+                      });
+                      */
 	
      
     app.post('/delete/account', function(req, res) {
@@ -2108,8 +2258,8 @@ module.exports = function(app) {
                         if(err){
                             res.send(400);
                         } else {
-                            networks.remove({'member_id':req.session.user.id}, function(){
-                                canvases.remove({'owner_id':req.session.user.id}, function(){
+                            networks.remove({member_id:req.session.user.id}, function(){
+                                canvases.remove({owner_id:req.session.user.id}, function(){
                                     accounts.remove({id:req.session.user.id}, function(){
                                         req.session.destroy()
                                         res.send(200);
@@ -2120,8 +2270,8 @@ module.exports = function(app) {
                     }
                 );
             } else {
-                networks.remove({'member_id':req.session.user.id}, function(){
-                    canvases.remove({'owner_id':req.session.user.id}, function(){
+                networks.remove({member_id:req.session.user.id}, function(){
+                    canvases.remove({owner_id:req.session.user.id}, function(){
                         accounts.remove({id:req.session.user.id}, function(){
                             req.session.destroy()
                             res.send(200);

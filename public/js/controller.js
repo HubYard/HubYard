@@ -46,18 +46,26 @@ var error_node = function(text){
 
 //save settings
 $(document).on('click', '.save-settings-user', function () {
-    $.ajax({
-		url: "/settings/user",
-		type: "POST",
-		data: {name: $('#update_name').val(),email: $('#update_email').val(),pass: $('#update_pass').val()},
-		success: function(results){
+    if(validateEmail($('#update_email').val()) === true){
+        $.ajax({
+            url: "/settings/user",
+            type: "POST",
+            data: {name: $('#update_name').val(),email: $('#update_email').val(),pass: $('#update_pass').val()},
+            success: function(results){
 
-				window.location.href = '/app'
-		},
-		error: function(){
-			error_node('There was an error <br><br> Please reload the page.');
-		}
-	});
+                    window.location.href = '/app'
+            },
+            error: function(results){
+                if(results.responseText){
+                    error_node(results.responseText);   
+                } else {
+                    error_node('there was some error');   
+                }
+            }
+        });
+    } else {
+        error_node('Enter a valid email!');
+    }
 });
 
 //new tab
@@ -70,7 +78,12 @@ function OpenInNewTab(url) {
 
 $(document).on('click', ' .post-extras', function(e){
     e.stopPropagation();
-    $(this).parent().find('.post-extra-menu-holder').toggle();
+    if($(this).parent().find('.post-extra-menu-holder').is(':visible') === true){
+        $('.post-extra-menu-holder').hide();
+    } else {
+        $('.post-extra-menu-holder').hide();
+        $(this).parent().find('.post-extra-menu-holder').show();
+    }
 });
 
 $(document).on('click', ' .post-extra-menu-holder', function(e){
@@ -114,7 +127,7 @@ var checkval = function(num){
 
 var session = {};
 
-Stripe.setPublishableKey('STRIPE');
+Stripe.setPublishableKey('');
 
 var approvecard = function(callback){
     $('.payment-errors').hide();
@@ -452,6 +465,8 @@ var newstream = function(data){
         html += '<div data-type="comment" class="button-line overlay-block-button post-action">Post</div>'
 html += '</div>'
         html += '<div class="clear"></div>'
+        html += '<div class="stream-content-comments" id="comments_' + data.id + '">';
+        html += '</div>'
         html += '</div>'
         html += '</div>'
         html += '</div>'
@@ -588,7 +603,7 @@ $(document).on('click', '.change-view', function(){
 //open save settings
 
 $(document).on('click', '.account-settings', function(){
-    $('.overlay-setting-options').hide();
+
     $('.overlay-settings').toggle();
     
 });
@@ -606,10 +621,11 @@ $(document).on('click', '.open-setting-options', function(){
 $(document).on('click', '.minimize-width', function(){
     $('sidebar').animate({width:'toggle'});
     if($('.canvas').width() === ($(window).width() - 315)){
-        $('.canvas').animate({left:60})
+        $('.canvas, .publish-default-state .publish-container').animate({left:60})
         $('.canvas').css('width', 'calc(100% - 60px)');
      } else {
         $('.canvas').animate({left:315})
+        $('.publish-default-state .publish-container').animate({left:312})
         $('.canvas').css('width', 'calc(100% - 315px)');
      }
 });
@@ -659,33 +675,70 @@ $(document).on('click', '.add-new-newsorrss', function(e){
     $('.overlay-new-newsorrss').toggle();
 });
 
+
+var reload_comments = function(user_id, network_id, stream_id){
+    var type = 'comments';
+    $.ajax({
+        url: "/post/details",
+        type: "POST",
+        data: {user_id:user_id, network_id:network_id, type:type, stream_id:stream_id},
+        success: function(results){
+            if(results.stream_id.indexOf('comments') === -1){
+            results.id = 'comments_' + results.stream_id;
+            } else {
+                results.id = results.stream_id
+            }
+            $('#' + results.id).html('<div class="stream-content"><div class="stream-content-layer"></div></div>');
+            results.service = 'facebook page'
+            pushposts(results);
+        },
+        error: function(){
+            error_node('There was an error <br><br> Please reload the page.');
+        }
+    });   
+}
+
+
+
+
 $(document).on('click', '.post-comment', function(e){
     var stream_id = $(this).parent().parent().parent().parent().parent().parent().parent().data('id');
     $('#comment_' + stream_id).animate({width:'toggle'});
     $('.stream-content-comment-content').html($(this).parent().parent().parent().parent().outerHTML());
     if($(this).data('service') === 'twitter'){
         $('.stream-content-comment-input textarea').val($(this).parent().parent().parent().find('.post-header').find('.post-header-username').text() + ' ');
+    } else if($(this).data('service') === 'facebook page'){
+        var user_id = $(this).parent().parent().parent().parent().data('post_id');
+        var network_id = $(this).parent().parent().parent().parent().parent().parent().parent().data('network_id');
+        var stream_id = $(this).parent().parent().parent().parent().parent().parent().parent().data('id');
+        reload_comments(user_id, network_id, stream_id);
     }
 });
 
 
 $(document).on('keyup', '.stream-content-comment-input textarea', function(e){
-    $('#comment_chars').text(encodeURI($('.stream-content-comment-input textarea').val()).replace(/%20/g, ' ').length);
+    $('#comment_chars').text(encodeURI($(this).parent().parent().parent().find('.stream-content-comment-input').find('textarea').val()).replace(/%20/g, ' ').length);
+});
+
+$(document).on('keyup', 'textarea', function(e){
+    $(this).height(30);
+    $(this).height(this.scrollHeight + parseFloat($(this).css("borderTopWidth")) + parseFloat($(this).css("borderBottomWidth")));
 });
 
 $(document).on('click', '.stream-content-return', function(e){
     $(this).parent().parent().parent().animate({width:'toggle'});
 });
 
-$(document).on('click', '.post-header', function(e){
-    var that = this;
-    var user_id = $(this).data('user_id');
-    var network_id = $(this).parent().parent().data('network_id');
-    var stream_id = $(this).parent().parent().parent().parent().parent().data('id');
-    var type = $(this).data('type');
+$(document).on('click', '.post-reply', function(e){
+    $(this).parent().find('.reply-to-comment').toggle();
+});
 
+
+var getUser = function(that, user_id, network_id, stream_id, type){
     if(network_id !== 'RSS'){
-        $('#user_' + stream_id).animate({width:'toggle'});
+        if($('#user_' + stream_id).is(':hidden')){
+            $('#user_' + stream_id).animate({width:'toggle'});
+        }
         $('.stream-content-user-stats').html('');
         $('.stream-content-user-picture').html('LOADING CONTENT!!');
         $('.stream-content-user-name').html('');
@@ -719,7 +772,7 @@ $(document).on('click', '.post-header', function(e){
                         type: "POST",
                         data: {service:'twitter', type:'user_search_feed', network_id:network_id, query:results.screen_name, id:stream_id},
                         success: function(results){
-                                
+                                $('#user_own_' + results.id + ' > .stream-content > .stream-content-layer').html('');
                                 $('#user_own_' + results.id + ' > .stream-content').css('height', 'calc(100% - ' + $('#user_' + results.id + ' .stream-user').height() + 'px)');
                                 $('#user_own_' + results.id + ' > .stream-content').data('active', 'yes');
                                 results.id = 'user_own_' + results.id;
@@ -747,7 +800,7 @@ $(document).on('click', '.post-header', function(e){
                         type: "POST",
                         data: {service:'tumblr', type:'user_search_feed', network_id:network_id, query:results.name, id:stream_id},
                         success: function(results){
-                                
+                                $('#user_own_' + results.id + ' > .stream-content > .stream-content-layer').html('');
                                 $('#user_own_' + results.id + ' > .stream-content').css('height', 'calc(100% - ' + $('#user_' + results.id + ' .stream-user').height() + 'px)');
                                 $('#user_own_' + results.id + ' > .stream-content').data('active', 'yes');
                                 results.id = 'user_own_' + results.id;
@@ -781,7 +834,7 @@ $(document).on('click', '.post-header', function(e){
                         type: "POST",
                         data: {service:'instagram', type:'user_search_feed', network_id:network_id, query:results.username, id:stream_id},
                         success: function(results){
-                                
+                                $('#user_own_' + results.id + ' > .stream-content > .stream-content-layer').html('');
                                 $('#user_own_' + results.id + ' > .stream-content').css('height', 'calc(100% - ' + $('#user_' + results.id + ' .stream-user').height() + 'px)');
                                 $('#user_own_' + results.id + ' > .stream-content').data('active', 'yes');
                                 results.id = 'user_own_' + results.id;
@@ -840,6 +893,32 @@ $(document).on('click', '.post-header', function(e){
             }
         });
     }
+}
+
+var createAtUsers = function(text, type){
+    var output,
+        regex   = /(^|[^@\w])@(\w{1,15})\b/g,
+        replace = '$1<a class="at-user" data-type="' + type + '" data-user_id="$2">@$2</a>';
+    return text.replace( regex, replace );
+}
+
+$(document).on('click', '.at-user', function(e){
+    var that = this;
+    var user_id = $(this).data('user_id');
+    var network_id = $(this).parent().parent().parent().parent().data('network_id') ;
+    var stream_id = $(this).parent().parent().parent().parent().parent().parent().parent().data('id') || $(this).parent().parent().parent().parent().parent().parent().parent().parent().parent().parent().data('id');
+    var type = $(this).data('type');
+    getUser(that, user_id, network_id, stream_id, 'user_name');
+    
+});
+
+$(document).on('click', '.post-header', function(e){
+    var that = this;
+    var user_id = $(this).data('user_id');
+    var network_id = $(this).parent().parent().data('network_id');
+    var stream_id = $(this).parent().parent().parent().parent().parent().data('id');
+    getUser(that, user_id, network_id, stream_id, 'user');
+    
 });
 
 $(document).on('click', '.switch-canvas .partition-icon, .switch-canvas .partition-text', function(e){
@@ -870,6 +949,54 @@ $(document).on('click', '.delete-account', function(e){
 	});
 });
 
+
+$(document).on("keypress", ".reply-to-comment", function(e){
+    if (e.keyCode == 13) {
+        text = encodeURI($(this).val()).replace(/%20/g, ' ');
+        network_id = $(this).data('network_id');
+        post_id = $(this).data('post_id');
+        $.ajax({
+            url: "/post/action",
+            type: "POST",
+            data: {post_id:post_id, network_id:network_id, type:'comment', text:text, post_id_additional:''},
+            success: function(results){
+              
+            },
+            error: function(){
+
+            }
+        });
+    }
+});
+
+
+$(document).on("click", ".add-email-tool", function(e){
+    var email = $('.email-item-add').val();
+    if (validateEmail(email) === true) {
+        $.ajax({
+            url: "/email/add",
+            type: "POST",
+            data: {email:email},
+            success: function(results){
+                $('.email-overcheck').hide();
+                $('#update_email').val(email);
+            },
+            error: function(results){
+                
+                if(results.responseText){
+                    error_node(results.responseText);   
+                } else {
+                    error_node('there was some error');   
+                }
+            }
+        });
+    } else {
+        error_node("This isn't a valid email");   
+    }
+});
+
+
+
 $(document).on('click', '.post-actions .post-action, .stream-comment-post .post-action', function(e){
     var that = this;
     var post_id = $(this).parent().parent().parent().parent().data('post_id');
@@ -878,9 +1005,11 @@ $(document).on('click', '.post-actions .post-action, .stream-comment-post .post-
     var type = $(this).data('type');
     var text = undefined;
     if(type === 'comment'){
-        text = encodeURI($('.stream-content-comment-input textarea').val()).replace(/%20/g, ' ');
-        network_id = $('.stream-content-comment-content .post').data('network_id');
-        post_id = $('.stream-content-comment-content .post').data('post_id');
+        text = encodeURI($(this).parent().parent().parent().find('.stream-content-comment-input').find('textarea').val()).replace(/%20/g, ' ');
+        network_id = $(this).parent().parent().parent().parent().parent().parent().data('network_id');
+        
+        post_id = $(this).parent().parent().parent().find('.stream-content-comment-content').find('.post').data('post_id');
+        post_id_additional = $(this).parent().parent().parent().find('.stream-content-comments').attr('id');
     }
 
     $.ajax({
@@ -899,6 +1028,10 @@ $(document).on('click', '.post-actions .post-action, .stream-comment-post .post-
             } else if(type === 'comment'){
                 $(that).css('background', '#597287');
                 $(that).text('Posted!')
+                
+                if(results.service === 'facebook page'){
+                    reload_comments(results.user_id, results.network_id, results.stream_id);   
+                }
             }
             
 		},
@@ -924,7 +1057,7 @@ function linkify(text) {
         })  
 }
 
-var projectpost = function(data, service, network_id){   
+var projectpost = function(data, service, network_id, special){   
     var post = "<div class='post' data-service='" + service + "' data-network_id='"+ network_id + "' data-post_id='"+ data.id + "' ";
     
     if(data.id_m){
@@ -983,15 +1116,37 @@ var projectpost = function(data, service, network_id){
         post += "<a class='icon-" + data.actions[i] + " post-action' data-type='" + data.actions[i] + "'></a>"
         if( i === (data.actions.length -1)){
             if(data.comment){
-               post += "<a class='icon-reply post-comment' data-service='" + service + "'></a>" 
+               post += "<a class='icon-reply post-comment' data-service='" + service + "'></a>"
+               
+            } else if(data.reply){
+                if(data.allowreplies === true){
+                post += "<a class='icon-reply post-reply'></a>"
+                }
+                post += "<textarea class='reply-to-comment' data-service='" + service + "' data-post_id='" + data.id + "' data-network_id='" + network_id + "' placeholder='press enter to reply'></textarea>"
+
+                
             }
             
-            post += "<a class='icon-dot-3 post-extras'></a>" 
-            post += "<div class='post-extra-menu-holder'><div class='post-extra-menu-arrow'></div><div class='post-extra-menu'>"
-            post += "<a href='" + data.url + "' target='_blank'><div class='post-extra-menu-item'>Original Post</div></a>"
-            post += "<a href='mailto:?body=" + data.url + "'><div class='post-extra-menu-item'>Email Post</div></a>"
-            post += "</div>"
-            post += "</div></div></div></div><div class='clear'></div></div>"
+            
+            
+            if(special && special.nodots){
+            } else {
+                post += "<a class='icon-dot-3 post-extras'></a>" 
+                post += "<div class='post-extra-menu-holder'><div class='post-extra-menu-arrow'></div><div class='post-extra-menu'>"
+                post += "<a href='" + data.url + "' target='_blank'><div class='post-extra-menu-item'>Original Post</div></a>"
+                post += "<a href='mailto:?body=" + data.url + "'><div class='post-extra-menu-item'>Email Post</div></a>"
+                post += "</div></div>"
+            }
+            if(data.reply){
+                post += '</div>';
+                post += '<div class="stream-content-comments nostuff" id="commentxs_' + data.id + '">';
+                post += '<div class="stream-content"><div class="stream-content-layer"></div></div>';
+                post += '</div>';
+            } else {
+                post += '</div>';
+            }
+            
+            post += "</div></div><div class='clear'></div></div>"
             return post;
         }
     }
@@ -1019,9 +1174,9 @@ var pushposts = function(results){
                     data.user.picture = o.user.profile_image_url;
                     data.user.username = '@' + o.user.screen_name;
                     if(emojione){
-                        data.text = emojione.toImage(linkify(o.text));
+                        data.text = emojione.toImage(createAtUsers(linkify(o.text), 'twitter'));
                     } else {
-                        data.text = linkify(o.text);
+                        data.text = createAtUsers(linkify(o.text), 'twitter');
                     }
                     data.url = 'http://twitter.com/a/status/' + o.id_str;
                     data.comment = true;
@@ -1068,6 +1223,7 @@ var pushposts = function(results){
                 var data = {};
                 data.user = {};
                 data.user.name = o.blog_name;
+                data.user.picture = "http://api.tumblr.com/v2/blog/" + o.blog_name +".tumblr.com/avatar";
                 data.user.id = o.blog_name + '.tumblr.com';
                 data.id = o.id;
                 data.id_m = o.reblog_key;
@@ -1206,7 +1362,7 @@ var pushposts = function(results){
         case 'facebook page': 
             var d = {};
             d = results.data.data;
-            
+          
             for(var i = 0; i < d.length; i++){
                 
                 var o = d[i];
@@ -1216,7 +1372,8 @@ var pushposts = function(results){
                     data.user.name = o.from.name;
                     data.user.id = o.from.id;
                     data.id = o.id;
-                    data.url = o.id.split('_')[1];
+                    data.user.picture = "https://graph.facebook.com/v2.2/" + o.from.id +"/picture";
+                    data.url = 'http://facebook.com/' + o.id.split('_')[1];
                     data.user.username = '';
                     data.text = o.story || o.message || '';
                     if(o.actions !== undefined && o.actions[0] !== undefined && o.actions[0].name === 'Comment'){
@@ -1237,12 +1394,31 @@ var pushposts = function(results){
                         data.embed = '<img data-facebook="' + o.object_id + '" style="width:130px" src="' + o.picture + '">';
                     }
                     
+                    var special = {};
 
-                    $('#' + results.id + " > .stream-content .stream-content-layer").append(projectpost(data, results.service, results.network_id));
-
-
-
+                    if(results.id.indexOf('comments') !== -1){
+                        special.nodots = true;
+                        data.actions = ['heart']
+                        data.reply = true;
+                        data.allowreplies = true;
+                        if(o.comments){
+                            data.replies = o.comments
+                        }
+                        
+                    } else if(results.id.indexOf('commentxs') !== -1){
+                        special.nodots = true;
+                        data.actions = ['heart']
+                    }
+                    
+                    $('#' + results.id + " > .stream-content > .stream-content-layer").append(projectpost(data, results.service, results.network_id, special));
+                    
+                    if(o.comments){
+                        
+                        pushposts({data:o.comments, id:"commentxs_" + data.id , network_id:results.network_id, service:results.service});
+                    }
+                
                     if(i === (d.length - 1)){
+                        
                         $('#' + results.id + " > .stream-content .stream-content-layer").append('<div class="clear"></div>');
                         $('#' + results.id).data('pageation_id', results.data.paging.next)
                         $('#' + results.id + " .stream-content").data('active', 'no');
@@ -1349,7 +1525,7 @@ var pushposts = function(results){
 
 //start operations get posts
 var getposts = function(){
-    $('.stream-content-layer').html('')
+    $('.stream > .stream-content .stream-content-layer').html('')
     for(var i = 0; i < $('.canvas.selected .stream').length; i++){
         $.ajax({
             url: "/stream/collect",
@@ -1451,9 +1627,12 @@ $(document).ready(function(){
     checkscroll('.stream  > .stream-content');
     
     
-    
-  
+    //fix posting
 
+  
+    if($('.select-to-post').length === 0){
+           $('.publish-overlay-to-networks .partition-data').text('You have no supported networks connected, we only support Twitter and Facebook Pages right now!')
+    }
     
     
     
@@ -1481,6 +1660,121 @@ $(document).ready(function(){
     
 });
 
+
+$(document).on('keyup', '.publish-container textarea', function(e){
+    var length = $(this).val().length;
+    $('.publish-container .character-count').text(length);
+    if(length !== 0){
+        checkReadyToPost();
+        $('.publish-states').removeClass('publish-default-state');
+        $('.publish-states').addClass('publish-advanced-state');
+    } else {
+        $('.publish-error, .publish-image-preview').hide();
+        $('#upload_file').val('');
+        
+        $('.publish-states').addClass('publish-default-state');
+        $('.publish-states').removeClass('publish-advanced-state');
+        $('.publish-container textarea').height(15);
+    }
+});
+
+function readURL(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+
+        reader.onload = function (e) {
+            $('#image_preview').attr('src', e.target.result);
+        }
+
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+var CheckFileName = function(){
+    var fileName = document.getElementById("upload_file").value
+    if (fileName == "") {
+        alert("Browse to upload a valid File with png/jpg/gif extension");
+        return false;
+    }
+    else if (fileName.split(".")[1].toUpperCase() == "PNG" || fileName.split(".")[1].toUpperCase() == "JPG" || fileName.split(".")[1].toUpperCase() == "GIF")
+        return true;
+    else {
+        alert("File with " + fileName.split(".")[1] + " is invalid. Upload a validfile with png extensions");
+        return false;
+    }
+}
+
+var checkReadyToPost = function(){
+    if($('.post-locations').length > 0 && $('.publish-container textarea').val().length > 0){
+        $('.publish-button').removeAttr('disabled');
+        $('.publish-error').hide()
+    } else {
+        $('.publish-button').attr('disabled', 'disabled');
+    }
+}
+
+
+$(document).on('mouseenter', '.complete-publish', function(e){
+    
+    if($('.post-locations').length > 0 && $('.publish-container textarea').val().length > 0){
+        
+        $('.publish-error').hide()
+    } else {
+        $('.publish-error').show();
+        if($('.post-locations').length === 0){
+            $('.publish-error').text("You haven't selected a network.")
+        } else {
+            $('.publish-error').text("You need to enter some text.")
+        }
+    }
+})
+
+
+
+$(document).on('change', '#upload_file', function(){
+    
+    
+    
+    if(CheckFileName() === true){
+        readURL(this);
+        $('.publish-image-preview').show();
+    } else {
+        $('#image_preview').val('')   
+    }
+    
+    
+})
+
+$(document).on('click', '.image-preview-remove', function(){
+    $('#image_preview').removeAttr('src');
+    $('#image_preview').val('')   
+    $('.publish-image-preview').hide();
+})
+
+/*post work*/
+$(document).on('click', '.select-to-post', function(){
+    if($(this).hasClass('selected')){
+        $('#post_location_' + $(this).data('id')).remove();
+         $('.post-location-count').val($('.post-locations').length)  
+        $(this).removeClass('selected');
+    } else {
+        $(this).addClass('selected');
+        var html = '';
+        html += '<input class="post-locations" id="post_location_' + $(this).data('id') + '" name="network_' + $('.post-locations').length + '" value="' + $(this).data('id') + '">';
+        $('.publish-hidden-locations').append(html);
+        $('.post-location-count').val($('.post-locations').length)  
+    }
+});
+  
+$(document).on('keyup', '.publish-container textarea', function(e){
+   checkReadyToPost();
+});
+
+$(document).on('click', '.select-to-post', function(){
+   checkReadyToPost();
+})
+
+  
 //when user leaves something
 $(document).mouseup(function (e){
     var container = $(".add-new-network, .overlay-new-network");
@@ -1555,6 +1849,16 @@ $(document).mouseup(function (e){
     }
 });
 
+$(document).mouseup(function (e){
+    var container = $(".post-extras, .post-extra-menu-holder");
+    
+    if (!container.is(e.target) // if the target of the click isn't the container...
+        && container.has(e.target).length === 0) // ... nor a descendant of the container
+    {
+        $('.post-extra-menu-holder').hide();
+    }
+});
+
 
 
 //explode image
@@ -1591,4 +1895,6 @@ $(document).mouseup(function (e){
         $('.exploded-image-container').animate({opacity:'hide'});
     }
 });
+
+
 

@@ -88,6 +88,7 @@ block content
             -return 0;
         -}
         -if(canvases !== undefined && canvases.length !== 0){
+            include publish
             -for(var i = 0; i < canvases.length; i++){
                 - var selected = '';
                 -if(i === parseFloat(udata.options.canvas)){
@@ -128,6 +129,8 @@ block content
                                                     .stream-comment-post
                                                         .button-line.overlay-block-button.post-action(data-type='comment') Post
                                                     .clear
+                                                .clear
+                                                .stream-content-comments(id='comments_' + canvases[i].streams[x].id)
                                     .stream-content-user(id='user_' + canvases[i].streams[x].id)
                                         .stream-layer
                                             .stream-user
@@ -157,6 +160,15 @@ block content
             include tutorial
         -}
     overlays
+        -if(udata.email.indexOf('@needstobefixed') !== -1){
+            .email-overcheck
+                .select-net-select(style='width: 500px;')
+                    .select-net-header One last step :)
+                    .select-net-content
+                        div Share us your email so we can send you important updates.
+                        input.email-item-add(type='email' placeholder='Enter your email')
+                        .add-email-tool Confirm
+        -}
         #item_noemail.modal
             .modal-text Your email isn't real. <br><br> (we need it to be so we can keep you informed about your payment) <br><br> Please create a real one. <br><br> (if it is real, just refresh this page and try again)
             .button-line.modal-quit Got It!

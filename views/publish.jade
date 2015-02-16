@@ -1,0 +1,31 @@
+.publish-default-state.publish-states
+    form(action='/post' method="post" enctype="multipart/form-data")
+        .publish-overlay-to-networks
+            .partition-header.icon-pencil  Where do you want to post?
+            .partition-data
+                -for(var i = 0; i < networks.length; i++){
+                    -if(networks[i].service === 'twitter' || networks[i].service === 'facebook page'){
+                        .partition-information.account-item.select-to-post(data-id= networks[i].id )
+                            .partition-image
+                                -if(networks[i].user.picture){
+                                    img(src= networks[i].user.picture)
+                                -}
+                            .partition-text= networks[i].user.name
+                    -}
+                -}
+        .publish-container
+            .publish-error Wop
+            .publish-image-preview
+                .image-preview-remove remove image
+                img#image_preview
+            textarea(name='post_text' placeholder='Start writing an idea')
+            .publish-bottom
+                .complete-publish
+                    input.button-line.publish-button(name='publish' type='submit' value='Publish' disabled='disabled')
+                .complete-file-upload
+                    input.upload-load#upload_file(type='file' name='image')
+                    .upload-load.file-upload-overlay.icon-camera
+                .character-count 0
+                .clear
+        input.post-location-count(value='0' type='text' name='post_location_count' hidden='hidden')
+        .publish-hidden-locations

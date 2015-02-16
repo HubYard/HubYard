@@ -7,6 +7,9 @@ html
         script(src='/js/home.js')
     -if(useheader === true){
         body
+            -if(producthunt === 'true'){
+                .toppex Hey Product Hunters, Enjoy our Beta Pricing during our release :) (50% off / 5$ a month)!
+            -}
             .home-header
                 .home-center
                     a(href='/')
