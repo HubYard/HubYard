@@ -98,6 +98,17 @@
                     a(href='/auth/producthunt')
                         .button-line.overlay-block-button.half-button(style='margin-right:15px') Refresh
                     .button-line.overlay-block-button.delete-current-network.half-button( data-id= networks[i].id) Delete
+            -}else if(networks[i].service === 'youtube'){
+                .create-new
+                    .overlay-block-option(style='text-align:center; font-weight:bold; color:#71818B') Add New Stream
+                    .overlay-block-option
+                        .overlay-block-item-left.dark Homepage
+                        .overlay-block-item-right.new-stream.icon-plus(data-network_id= networks[i].id data-user= networks[i].user.username data-service='youtube' data-type='recent_uploads')
+                        .clear
+                .overlay-block-option(style='margin-bottom:0px')
+                    a(href='/auth/youtube')
+                        .button-line.overlay-block-button.half-button(style='margin-right:15px') Refresh
+                    .button-line.overlay-block-button.delete-current-network.half-button( data-id= networks[i].id) Delete
             -} else if(networks[i].service === 'dribbble'){
                 .create-new
                     .overlay-block-option(style='text-align:center; font-weight:bold; color:#71818B') Add New Stream

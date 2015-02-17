@@ -347,7 +347,7 @@ module.exports = function(app) {
             var email = htmlEscape(req.param('email')).toLowerCase();
             accounts.findOne({id:req.session.user.id}, function(e, o) {
                 accounts.findOne({email:email}, function(z, x) {
-                    console.log(x);
+                   
                     if(req.session.user.email === email || x === null){
                         if(o){
                             o.email = email;
@@ -793,7 +793,7 @@ module.exports = function(app) {
                     if(o.responseData){
                         res.send({data:o.responseData.feed, id:req.param('id'), service:service, network_id:req.param('network_id')});
                     } else {
-                        console.log(o);
+                 
                         res.send(400);
                     }
                 });
@@ -907,7 +907,7 @@ module.exports = function(app) {
                                         }
                                     break;
                                 }
-                                console.log(link)
+                              
                                 oauth_1_request(link, authorization, 'get', function(results){
 
                                     res.send({data:results, type:type, id:req.param('id'), service:service, network_id:req.param('network_id')});
@@ -1023,8 +1023,52 @@ module.exports = function(app) {
                                     res.send({data:o, id:req.param('id'), service:service, network_id:req.param('network_id')});
                                 });
                                 break;   
+                            case 'youtube': 
+                                    var ytauth_2 = {
+                                          grant_type : 'refresh_token',
+                                          refresh_token : o.auth.refresh_token,
+                                          client_id : keys.googleconsume,
+                                          client_secret : keys.googleconsume_secret,
+                                          redirect_uri : ytauth.redirect_uri,
+                                    }
+                                    if(ytauth_2.refresh_token){
+                                    
+                                    generic_request('https://accounts.google.com/o/oauth2/token', {}, 'POST', function(x){
+                                        if(x && x.access_token){
+                                            o.auth.token = x.access_token
+                                            var link = '';
+                                            networks.save(o, {safe: true}, function(){
+                                                var header = {Authorization:'Bearer ' + o.auth.token};
+                                                switch(type) {
+                                                    case 'recent_uploads': 
+                                                        if(pageation_id){
+                                                            link = 'https://www.googleapis.com/youtube/v3/activities?part=snippet&home=true&maxResults=50&publishedBefore=' + pageation_id;
+                                                        } else {
+                                                            link = 'https://www.googleapis.com/youtube/v3/activities?part=snippet&home=true&maxResults=50'
+                                                        }
+                                                    break;
+                                                    case 'user_search_feed': 
+                                                        if(pageation_id){
+                                                            link = 'https://www.googleapis.com/youtube/v3/activities?part=snippet&maxResults=50&publishedBefore=' + pageation_id + '&channelId=' + query;
+                                                        } else {
+                                                            link = 'https://www.googleapis.com/youtube/v3/activities?part=snippet&maxResults=50&channelId=' + query; 
+                                                        }
+                                                    break;
+                                                }
+                                                generic_request(link, header, 'GET', function(o){
+                                                    res.send({data:o, id:req.param('id'), service:service, network_id:req.param('network_id')});
+                                                });  
+                                            });
+                                        } else {
+                                            res.send(400);
+                                        }
+                                    }, null, null, ytauth_2);
+                                    } else {
+                                        res.send(400);   
+                                    }
+                                break;
+                                
                         }
-
                     } else {
                         res.send(404);   
                     }
@@ -1151,6 +1195,20 @@ module.exports = function(app) {
                                 res.send({service:service, data:results, stream_id:stream_id, network_id:network_id});
                             });
                             break;
+                        case 'youtube':
+                            var link = '';
+                            var header = {Authorization:'Bearer ' + o.auth.token};
+
+                            switch(type) {
+                                case 'user': 
+                                    link = 'https://www.googleapis.com/youtube/v3/channels?part=snippet&id=' + id;
+                                    retype = 'user';
+                                break;
+                            }
+                            generic_request(link, header, 'GET', function(results){
+                                res.send({service:service, data:results, stream_id:stream_id, network_id:network_id});
+                            });
+                            break;
                     }
                     
                 } else {
@@ -1253,6 +1311,7 @@ module.exports = function(app) {
                                     body = {id:id, reblog_key:id_m, comment:comment}
                                 break;
                             }
+                       
                             oauth_1_request(link, authorization, 'post', function(results){
                                 res.send({type:retype});
                             }, body);
@@ -1343,7 +1402,7 @@ module.exports = function(app) {
 	});
     
     var saveNetwork = function(req, res, id, auth, user, service){
-        networks.findOne({member_id:req.session.user.id, user:user, service:service }, function(e, o) {
+        networks.findOne({member_id:req.session.user.id, "user.id":user.id, service:service }, function(e, o) {
             if(o){
                 o.auth = auth; //{token:,token_secret:}
                 o.user = user; //{name:'joe', profile_pic:'joe', username:'joe90'}
@@ -1469,10 +1528,11 @@ module.exports = function(app) {
 				cb(result);
 			} else {
                var result = error;
-                console.log(body);
+                console.log(body); //shows error
 				cb(result);  
             }
 		}
+    
 		request(options, callback);
 	}
 
@@ -1529,11 +1589,12 @@ module.exports = function(app) {
                     oauth_1_request('https://api.twitter.com/1.1/users/show.json?screen_name=' + o.screen_name, oth, 'get', function(results){
                         var service = 'twitter';
                         var user = {name:results.name, picture:results.profile_image_url, username:results.screen_name, id:results.id_str}
+                        console.log(req.session.user);
                         if(req.session.user){
                             saveNetwork(req, res, null, auth, user, service);
                         } else {
                             var id = 'tw_' + user.id;
-                            networks.findOne({user:{id:user.id}}, function(e, x) {
+                            networks.findOne({"user.id":user.id}, function(e, x) {
                                 if(x){
                                     accounts.findOne({id:x.member_id}, function(e, o) {
                                         if(o){
@@ -1753,6 +1814,63 @@ module.exports = function(app) {
         }
     });
     
+    //login 2 youtube
+    
+    var ytauth = {
+        token: keys.googleconsume,
+        redirect_uri: keys.url_host + '/auth/youtube/callback',
+        response: 'code',
+        scope: 'https://www.googleapis.com/auth/youtube https://www.googleapis.com/auth/youtube.readonly',
+        access_type: 'offline online'
+     }
+    
+    app.get('/auth/youtube', function(req, res) {
+       if(req.session.user != undefined){
+              req.session.use = false;
+              res.redirect('https://accounts.google.com/o/oauth2/auth?client_id=' + ytauth.token  + '&redirect_uri=' + ytauth.redirect_uri  + '&response_type=' + ytauth.response + '&scope=' + ytauth.scope + '&access_type=offline&approval_prompt=force')
+       
+        } else {
+            res.redirect('/');
+        }
+    });
+    app.get('/auth/youtube/callback', function(req, res) {
+       if(req.param != undefined){
+           
+            var ytauth_2 = {
+                  grant_type : 'authorization_code',
+                  code : req.param('code'),
+                  client_id : keys.googleconsume,
+                  client_secret : keys.googleconsume_secret,
+                  redirect_uri : ytauth.redirect_uri,
+
+            }
+            
+            generic_request('https://accounts.google.com/o/oauth2/token', {}, 'POST', function(o){
+                if(o && o.access_token){
+                    console.log(o);
+                    var auth = {token:o.access_token, refresh_token:o.refresh_token};
+                    generic_request('https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true', {Authorization: 'Bearer ' + auth.token}, 'GET', function(o){
+                        
+                        if(o.items && o.items[0] && o.items[0].snippet){
+                            var service = 'youtube';
+                            o = o.items[0].snippet;
+                            var user = {name:o.title, picture:o.thumbnails.high.url, username:o.title, id:o.id}
+                            saveNetwork(req, res, null, auth, user, service);
+                        } else {
+                            res.redirect('/'); 
+                        }
+                    });
+                } else {
+                    res.redirect('/');
+                }
+            }, null, null, ytauth_2);
+        } else {
+            res.redirect('/');
+        }
+    });
+    
+
+    
     //login 2 facebook
     
     var fbauth = {
@@ -1863,6 +1981,52 @@ module.exports = function(app) {
         }
     });
     
+    //login 2 linkedin
+    
+    /*
+    Will redo all Oauth2
+    
+    var liauth = {
+        token: keys.linkedinconsume,
+        redirect_uri: keys.url_host + '/auth/linkedin/callback',
+        response: 'code',
+        scope: ' rw_company_admin r_basicprofile'
+     }
+    
+    app.get('/auth/linkedin', function(req, res) {
+       if(req.session.user != undefined){
+             
+              res.redirect('https://www.linkedin.com/uas/oauth2/authorization?client_id=' + liauth.token  + '&redirect_uri=' + liauth.redirect_uri  + '&response_type=' + liauth.response + '&scope=' + liauth.scope + '&state=' + crypto.randomBytes(6).toString('hex'))
+       
+        } else {
+            res.redirect('/');
+        }
+    });
+
+    app.get('/auth/linkedin/callback', function(req, res) {
+       if(req.param != undefined){
+           
+            var liauth_2 = {
+                  client_id : keys.linkedinconsume,
+                  client_secret : keys.linkedinconsume_secret,
+                  redirect_uri : phauth.redirect_uri,
+                  code : req.param('code'),
+                  grant_type : "authorization_code"
+            }
+
+            generic_request('https://www.linkedin.com/uas/oauth2/accessToken', {}, 'POST', function(o){
+                if(o && o.access_token){
+                    var auth = {token:o.access_token};
+                
+                } else {
+                    res.send(400);   
+                }
+            }, phauth_2, true);
+        } else {
+            res.redirect('/');
+        }
+    });*/
+    
     //login 2 dribble
     
     var dribbleauth = {
@@ -1907,6 +2071,8 @@ module.exports = function(app) {
             res.redirect('/');
         }
     });
+    
+    
     
     //payments - Stripe
     var stripe = require("stripe")(
@@ -2190,7 +2356,6 @@ module.exports = function(app) {
                                                     link = 'https://upload.twitter.com/1.1/media/upload.json';
                                                     oauth_1_request(link, authorization, 'post', function(results){
                                                        if(results && results.media_id_string){
-                                                           console.log(text);
                                                             link = 'https://api.twitter.com/1.1/statuses/update.json';
                                                            console.log(authorization);
                                                             oauth_1_request(link, authorization, 'post', function(results){

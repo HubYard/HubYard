@@ -1525,6 +1525,7 @@ var pushposts = function(results){
 
 //start operations get posts
 var getposts = function(){
+    $('.stream').removeData('pageation_id')
     $('.stream > .stream-content .stream-content-layer').html('')
     for(var i = 0; i < $('.canvas.selected .stream').length; i++){
         $.ajax({
@@ -1620,6 +1621,7 @@ $(document).ready(function(){
     $('.stream  > .stream-content').scroll(function(){
         clearInterval(refreshpage);
         refreshpage = setInterval(function(){
+                
                getposts();
          }, 250000);
      });
