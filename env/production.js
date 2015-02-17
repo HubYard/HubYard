@@ -1,5 +1,3 @@
-'use restrict';
-
 module.exports = {	
         twitterconsume:"",
         twitterconsume_secret:"",
