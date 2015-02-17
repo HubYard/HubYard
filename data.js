@@ -35,9 +35,14 @@ var crypto = require('crypto');
 var MongoDB 	= require('mongodb').Db;
 var Server 		= require('mongodb').Server;
 var mongojs = require('mongojs');
-var keys = require('./keys');
 var multipart = require('connect-multiparty');
 var multipartMiddleware = multipart();
+
+if (process.env.NODE_ENV === 'production') {
+    var keys = require('./env/production');
+} else {
+    var keys = require('./env/development');
+}
 
 
 var rank_check = function(rank, sent, action){
@@ -1248,7 +1253,6 @@ module.exports = function(app) {
                                     body = {id:id, reblog_key:id_m, comment:comment}
                                 break;
                             }
-                            console.log(link)
                             oauth_1_request(link, authorization, 'post', function(results){
                                 res.send({type:retype});
                             }, body);
@@ -1525,7 +1529,6 @@ module.exports = function(app) {
                     oauth_1_request('https://api.twitter.com/1.1/users/show.json?screen_name=' + o.screen_name, oth, 'get', function(results){
                         var service = 'twitter';
                         var user = {name:results.name, picture:results.profile_image_url, username:results.screen_name, id:results.id_str}
-                        console.log(req.session.user);
                         if(req.session.user){
                             saveNetwork(req, res, null, auth, user, service);
                         } else {
@@ -2178,7 +2181,6 @@ module.exports = function(app) {
                                             case 'normal': 
                                                 link = 'https://api.twitter.com/1.1/statuses/update.json';
                                                 oauth_1_request(link, authorization, 'post', function(results){
-                                                   //console.log(results);
                                                 }, {status:text});
                                             break;
                                             case 'image': 
@@ -2192,7 +2194,6 @@ module.exports = function(app) {
                                                             link = 'https://api.twitter.com/1.1/statuses/update.json';
                                                            console.log(authorization);
                                                             oauth_1_request(link, authorization, 'post', function(results){
-                                                               //console.log(results);
                                                             }, {status:text, media_ids:results.media_id_string});
                                                        } else {
                                                             console.log('what');   

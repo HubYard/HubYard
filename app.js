@@ -24,12 +24,7 @@ app.use(bodyParser.json())
 app.use(cookieParser());
 app.use(session({ secret: 'swag1000emo', resave:false, saveUninitialized:false}));
 app.use(methodOverride());
-
 //app.use(favicon(__dirname + '/public/img/favicon.ico')); 
-
-
-
-
 
 require('./data')(app);
 
