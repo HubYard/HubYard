@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/HubYard/HubYard.svg?branch=master)](https://travis-ci.org/HubYard/HubYard)
+
 # HubYard
 ### What is HubYard?
 
