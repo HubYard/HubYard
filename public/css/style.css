@@ -1772,8 +1772,8 @@ font-size: 11px;
 }
 
 .network-box:hover {
-	border: 1px solid #CCC;
-	background-colid: #E6E6E6;
+	border: 1px solid #D5DCE0;
+	background-color: #ECF2F6;
 }
 
 .network-logo {
