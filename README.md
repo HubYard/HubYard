@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/HubYard/HubYard.svg?branch=master)](https://travis-ci.org/HubYard/HubYard)
+
 # HubYard
 ### What is HubYard?
 
@@ -25,27 +27,9 @@ npm install -d
 ```
 
 <b>Step 3</b>
-Create a keys.js file in your root folder for HubYard with the following. (Fill in the strings with your API Keys)
-```
-module.exports = {	
+Navigate to /env and edit the production keys to your API keys. 
 
-         twitterconsume:"",
-         twitterconsume_secret:"",
-         instagramconsume:'',
-         instagramconsume_secret:'',
-         producthuntconsume:'',
-         producthuntconsume_secret:'',
-         dribbleconsume:'',
-         dribbleconsume_secret:'',
-         tumblrconsume:"",
-         tumblrconsume_secret:"",
-         facebookconsume:"",
-         facebookconsume_secret:"",
-         url_host:'http://localhost:4002',
-         stripe:"",
-         connection_string:''
-}
-```
+(URL_Host) is your host aka http://localhost:4002
 
 <b>Step 4</b>
 Run and Enjoy (runs on localhost:4002)

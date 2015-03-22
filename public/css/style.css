@@ -1720,8 +1720,8 @@ font-size: 11px;
 .update-card input{
     border: 1px solid rgba(0, 0, 0, 0.1);
     background: transparent;
-margin: 10px 0px;
-width: 100%;
+	margin: 10px 0px;
+	width: 100%;
 }
 
 
@@ -1730,11 +1730,11 @@ width: 100%;
 }
 
 .nowidth .header-option-button{
-position: fixed;
-background: #FCFDFE;
-top: 25px;
-left: 10px;
-margin: 0px;
+	position: fixed;
+	background: #FCFDFE;
+	top: 25px;
+	left: 10px;
+	margin: 0px;
 }
 
 
@@ -1754,7 +1754,7 @@ margin: 0px;
 
 .partition-settings{
     float: right;
-color: #CCC;
+	color: #CCC;
 }
 
 .partition-information.selected{
@@ -1762,11 +1762,18 @@ color: #CCC;
 }
 
 .network-box{
-color: #71818B;
-float: left;
-text-align: center;
-padding: 20px;
-width: 80px;
+	width: 80px;
+	height: 80px;
+	color: #71818B;
+	float: left;
+	text-align: center;
+	padding: 20px 19px;
+	border: 1px solid #FFF;
+}
+
+.network-box:hover {
+	border: 1px solid #D5DCE0;
+	background-color: #ECF2F6;
 }
 
 .network-logo {
