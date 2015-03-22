@@ -5,7 +5,11 @@
             .partition-data
                 -for(var i = 0; i < networks.length; i++){
                     -if(networks[i].service === 'twitter' || networks[i].service === 'facebook page'){
-                        .partition-information.account-item.select-to-post(data-id= networks[i].id )
+                        - var c = '';
+                        -if(i === 0){
+                            -c = 'selected'
+                        -}
+                        .partition-information.account-item.select-to-post(class= c data-id= networks[i].id )
                             .partition-image
                                 -if(networks[i].user.picture){
                                     img(src= networks[i].user.picture)
