@@ -127,7 +127,7 @@ var checkval = function(num){
 
 var session = {};
 
-Stripe.setPublishableKey('');
+Stripe.setPublishableKey('testkey');
 
 var approvecard = function(callback){
     $('.payment-errors').hide();
@@ -278,7 +278,7 @@ $(document).on('click', '#item_noemail .modal-quit', function(e){
 
 //accept payment
 /*var handler = StripeCheckout.configure({
-    key: '',
+    key: 'pk_test_aiA0cpAE2UUCXpR5s9uSETf6',
     token: function(token) {
     
         $.ajax({
@@ -498,6 +498,7 @@ html += '</div>'
         
         $('.canvas').append(html);
         checkscroll('#' + data.id + '  > .stream-content');
+        
         reset_stream(data.id);
         $('.overlay-new-newsorrss, .overlay-networks').css('display', 'none');
 }
@@ -536,12 +537,13 @@ $(document).on('click', '.add-new-rss-link, .news-option', function(){
 //create a new stream
 $(document).on('click', '.new-stream', function(){
     if($('.switch-canvas.selected').data('id') !== undefined){
-        var query = $(this).parent().find('input').val() || undefined;
+        var query = $(this).parent().find('input').val() || $(this).data('query') || undefined;
         $.ajax({
             url: "/stream/new",
             type: "POST",
             data: {service:$(this).data('service'), type:$(this).data('type'), id:$('.switch-canvas.selected').data('id'), user:$(this).data('user'), network_id:$(this).data('network_id'), query:query},
             success: function(results){
+                
                 newstream(results);
 
             },
@@ -698,6 +700,33 @@ var reload_comments = function(user_id, network_id, stream_id){
     });   
 }
 
+$(document).on('click', '.load-twitter-lists', function(e){
+    $.ajax({
+        url: "/post/details",
+        type: "POST",
+        data: {network_id:$(this).data('network_id'), type:'list', stream_id:'re', user_id:'re'},
+        success: function(results){
+            if(results.data){
+                
+                $('#llist' + results.network_id).html('');
+                for(var i = 0; i < results.data.length; i++){
+                    var html = '';
+                    html += '<div class="overlay-block-option">'
+                    html += '<div class="overlay-block-item-left dark">' + results.data[i].name + '</div>'
+                    html += '<div data-network_id="' + results.network_id + '" data-user="' + results.stream_id  + '" data-service="twitter" data-query="' + results.data[i].id + '" data-type="list" class="overlay-block-item-right new-stream icon-plus"></div>'
+                    html += '<div class="clear"></div>'
+                    html += '</div>'
+                   
+                    $('#llist' + results.network_id).append(html);
+                }
+            }
+        },
+        error: function(){
+            error_node('There was an error <br><br> Please reload the page.');
+        }
+    });  
+});
+
 
 
 
@@ -844,7 +873,33 @@ var getUser = function(that, user_id, network_id, stream_id, type){
                             error_node('There was an error <br><br> Please reload the page.');
                         }
                     });
-                } else if(service === 'product hunt'){
+                } else if(service === 'youtube'){
+                    
+                    var id = results.items[0].id;
+                    results = results.items[0].snippet;
+                    o.picture = results.thumbnails.medium.url;
+                    o.name = results.title;
+                    o.username = ''
+                    o.bio = results.description || "A youtube user"
+                    o.url = "https://www.youtube.com/channel/" + id
+                    o.real = "https://www.youtube.com/channel/" + id
+                    o.stats = [];
+                    $.ajax({
+                        url: "/stream/collect",
+                        type: "POST",
+                        data: {service:'youtube', type:'user_search_feed', network_id:network_id, query:id, id:stream_id},
+                        success: function(results){
+                                $('#user_own_' + results.id + ' > .stream-content > .stream-content-layer').html('');
+                                $('#user_own_' + results.id + ' > .stream-content').css('height', 'calc(100% - ' + $('#user_' + results.id + ' .stream-user').height() + 'px)');
+                                $('#user_own_' + results.id + ' > .stream-content').data('active', 'yes');
+                                results.id = 'user_own_' + results.id;
+                                pushposts(results);
+                        },
+                        error: function(){
+                            error_node('There was an error <br><br> Please reload the page.');
+                        }
+                    });
+                }else if(service === 'product hunt'){
                     o.picture = results.image_url.original;
                     o.name = results.name;
                     o.username = '@' + results.username
@@ -955,12 +1010,18 @@ $(document).on("keypress", ".reply-to-comment", function(e){
         text = encodeURI($(this).val()).replace(/%20/g, ' ');
         network_id = $(this).data('network_id');
         post_id = $(this).data('post_id');
+        var that = this;
+        post_id_a = $(this).parent().parent().parent().parent().parent().parent().parent().attr('id');
+        
+        $('.reply-to-comment').hide();
         $.ajax({
             url: "/post/action",
             type: "POST",
-            data: {post_id:post_id, network_id:network_id, type:'comment', text:text, post_id_additional:''},
+            data: {post_id:post_id, network_id:network_id, type:'comment', text:text, post_id_additional:post_id_a},
             success: function(results){
-              
+              results.user_id = $(that).parent().parent().parent().parent().parent().parent().parent().parent().find('.stream-content-comment-content').find('.post').data('post_id');
+                
+              reload_comments(results.user_id, results.network_id, results.stream_id); 
             },
             error: function(){
 
@@ -1163,8 +1224,9 @@ var pushposts = function(results){
             } else {
              d = results.data;
             }
+
             if(d.length){
-                for(var i = 0; i < d.length; i++){
+                for(var i = 1; i < d.length; i++){
                     var o = d[i];
                     var data = {};
                     data.user = {};
@@ -1185,8 +1247,10 @@ var pushposts = function(results){
                         if(o.entities.media.length === 1){
                             data.picture = o.entities.media[0].media_url;
                         } else {
-                            $.each( o.entities.media, function( x, e ) {  
+                            $.each( o.entities.media, function( x, e ) { 
+                                data.photoset = [];
                                 if(o.entities.media[x].media_url){
+                                    
                                     data.photoset[x] =  o.entities.media[x].media_url
                                 }; 
                             });
@@ -1359,6 +1423,47 @@ var pushposts = function(results){
                 }
             };
         break;
+        case 'youtube': 
+            var d = {};
+            d = results.data.items;
+
+            if(d){
+                for(var i = 0; i < d.length; i++){
+                    
+                    var o = d[i].snippet;
+                    var data = {};
+
+                        var video_url = o.thumbnails.default.url.replace('https://i.ytimg.com/vi/', '').replace('/default.jpg', '')
+                        data.user = {};
+                        data.user.name = o.channelTitle;
+                        data.user.id = o.channelId;
+                        data.id = o.id;
+                        data.url = 'https://www.youtube.com/watch?v=' + video_url;
+                        data.user.username = '';
+                        data.text = o.title || '';
+                        data.comment = false;
+                        data.embed = '<img data-youtube="true" src="' +  o.thumbnails.medium.url + '">';
+
+
+                        data.actions = ['']
+
+                        $('#' + results.id + " > .stream-content .stream-content-layer").append(projectpost(data, results.service, results.network_id));
+                        
+
+                    
+                    if(i === (d.length - 1)){
+                        
+                        $('#' + results.id + " > .stream-content .stream-content-layer").append('<div class="clear"></div>');
+                        
+                        $('#' + results.id).data('pageation_id', o.publishedAt);
+                        $('#' + results.id + " .stream-content").data('active', 'yes');
+                    }
+                        
+                };
+            } else {
+                error_node('Something went wrong with youtube');   
+            }
+        break;
         case 'facebook page': 
             var d = {};
             d = results.data.data;
@@ -1525,7 +1630,7 @@ var pushposts = function(results){
 
 //start operations get posts
 var getposts = function(){
-    $('.stream').removeData('pageation_id')
+        $('.stream').removeData('pageation_id')
     $('.stream > .stream-content .stream-content-layer').html('')
     for(var i = 0; i < $('.canvas.selected .stream').length; i++){
         $.ajax({
@@ -1621,7 +1726,6 @@ $(document).ready(function(){
     $('.stream  > .stream-content').scroll(function(){
         clearInterval(refreshpage);
         refreshpage = setInterval(function(){
-                
                getposts();
          }, 250000);
      });
@@ -1879,6 +1983,10 @@ $(document).on('click', '.post-content-image img, .post-content img', function()
             }
         });
         
+    } else if($(this).data('youtube')){
+        var url = $(this).attr('src');
+        var video_url = url.replace('https://i.ytimg.com/vi/', '').replace('/default.jpg', '')
+        $(this).parent().html('<iframe width="560" height="315" src="https://www.youtube.com/embed/' + video_url + '" frameborder="0" allowfullscreen></iframe>');
     } else {
         if($(this).parent('a').attr('href') !== undefined){
         } else {
@@ -1887,6 +1995,8 @@ $(document).on('click', '.post-content-image img, .post-content img', function()
         }
     }
 });
+
+
 
 $(document).mouseup(function (e){
     var container = $(".exploded-image");
