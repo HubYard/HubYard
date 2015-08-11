@@ -21,7 +21,7 @@ Install MongoDB onto a local or remote server and recieve a connection string
 Do the following (This assumes you already have node.js & npm installed.)
 
 ```
-git clone git@github.com:forthwall/HubYard.git hubyard
+git clone git@github.com:HubYard/HubYard.git hubyard
 cd hubyard
 npm install -d
 ```
