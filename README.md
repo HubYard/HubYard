@@ -1,5 +1,7 @@
 [![Build Status](https://travis-ci.org/HubYard/HubYard.svg?branch=master)](https://travis-ci.org/HubYard/HubYard)
 
+!!! I've decided to temporarily abandon support of this project, I will still monitor pull requests.
+
 # HubYard
 ### What is HubYard?
 
